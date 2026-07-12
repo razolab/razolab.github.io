@@ -552,7 +552,7 @@ function onCatChange(){
   if(!cat){selMol.disabled=true;return;}
   selMol.disabled=false;
   Object.keys(PRODUCTS).filter(k=>PRODUCTS[k].cat===cat).forEach(code=>{
-    const enRupture=RUPTURE.includes(code);
+    const enRupture=isRupture(code);
     const o=document.createElement('option');
     o.value=code;
     o.textContent=PRODUCTS[code].nom + (enRupture?'  — ⛔ RUPTURE':'');
