@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RAZOLAB</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:#0a0f08;
+  --bg2:#0d1409;
+  --card:#121a0d;
+  --cyan:#9dff1a;      /* accent principal = vert néon RazoLab */
+  --green:#9dff1a;     /* vert néon vif */
+  --green-bright:#b6ff3d;
+  --line:rgba(157,255,26,.14);
+  --txt:#eaf5e0;
+  --txt-dim:rgba(234,245,224,.45);
+  --txt-faint:rgba(234,245,224,.25);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{
+  background:var(--bg);
+  color:var(--txt);
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  min-height:100vh;
+  padding-bottom:120px;
+  overflow-x:hidden;
+}
+/* scanline + grid ambience */
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(157,255,26,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(157,255,26,.02) 1px,transparent 1px);background-size:32px 32px;pointer-events:none;z-index:0;}
+.app{position:relative;z-index:1;max-width:600px;margin:0 auto;padding:0 16px;}
+
+/* ── HEADER ── */
+.header{padding:22px 0 16px;text-align:center;position:relative;}
+.header::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:1px;background:linear-gradient(90deg,transparent,var(--green),transparent);opacity:.5;box-shadow:0 0 8px rgba(157,255,26,.4);}
+.logo-dot{display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 12px var(--green),0 0 24px rgba(157,255,26,.4);margin-bottom:10px;}
+.header-logo{width:76px;height:76px;border-radius:50%;object-fit:cover;margin-bottom:10px;border:1px solid rgba(157,255,26,.3);box-shadow:0 0 20px rgba(157,255,26,.25);}
+.brand{font-size:32px;font-weight:900;letter-spacing:3px;color:var(--green);text-shadow:0 0 16px rgba(157,255,26,.5),0 0 30px rgba(157,255,26,.25);font-family:'Courier New',monospace;}
+.tagline{font-size:9px;letter-spacing:4px;color:var(--txt-faint);text-transform:uppercase;margin-top:4px;}
+
+/* ── SCREENS ── */
+.screen{display:none;animation:fade .3s ease;}
+.screen.active{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── HOME MENU ── */
+.home-menu{padding:30px 0;}
+.menu-btn{
+  display:flex;align-items:center;gap:16px;
+  width:100%;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;padding:22px 20px;margin-bottom:14px;
+  color:var(--txt);cursor:pointer;transition:all .2s;text-align:left;
+}
+.menu-btn:active{transform:scale(.98);border-color:var(--cyan);}
+.menu-btn-icon{font-size:26px;flex-shrink:0;}
+.menu-btn-txt{flex:1;}
+.menu-btn-title{font-size:16px;font-weight:700;margin-bottom:3px;}
+.menu-btn-sub{font-size:12px;color:var(--txt-dim);}
+.menu-btn-arrow{color:var(--cyan);font-size:20px;}
+
+.home-badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:24px;}
+.hbadge{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:1px solid;padding:6px 12px;border-radius:20px;}
+.hbadge.c{color:var(--cyan);border-color:rgba(157,255,26,.3);}
+.hbadge.g{color:var(--green);border-color:rgba(57,255,20,.25);}
+
+/* ── SECTION TITLE ── */
+.sec-head{display:flex;align-items:center;justify-content:space-between;padding:18px 0 14px;}
+.sec-title{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);}
+.back-btn{background:none;border:1px solid var(--line);color:var(--txt-dim);font-size:12px;padding:7px 14px;border-radius:20px;cursor:pointer;}
+.back-btn:active{border-color:var(--cyan);color:var(--cyan);}
+
+/* ── FORM CONTROLS ── */
+.field{margin-bottom:18px;}
+.field-label{display:block;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--txt-dim);margin-bottom:8px;}
+.select-wrap{position:relative;}
+.select-wrap::after{content:'▾';position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--cyan);pointer-events:none;font-size:14px;}
+select,input{
+  width:100%;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:15px 16px;color:var(--txt);font-size:15px;
+  appearance:none;-webkit-appearance:none;outline:none;transition:border .2s;
+  font-family:inherit;
+}
+select:focus,input:focus{border-color:var(--cyan);}
+select option{background:var(--bg2);color:var(--txt);}
+input::placeholder{color:var(--txt-faint);}
+
+/* ── PRODUCT INFO CARD ── */
+.prod-card{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:12px;padding:16px;margin-bottom:18px;display:none;}
+.prod-card.show{display:block;animation:fade .3s;}
+.prod-card-name{font-size:16px;font-weight:700;margin-bottom:4px;}
+.prod-card-cat{font-size:11px;color:var(--txt-dim);margin-bottom:12px;}
+.prod-price-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid rgba(255,255,255,.04);}
+.prod-price-label{font-size:13px;color:var(--txt-dim);}
+.prod-price-val{font-size:15px;font-weight:700;}
+.prod-price-val.green{color:var(--green);}
+
+/* ── ADD BUTTON ── */
+.add-btn{
+  width:100%;background:linear-gradient(135deg,var(--green),#6fbf10);
+  border:none;border-radius:12px;padding:16px;color:#0a0f08;font-size:15px;
+  font-weight:700;letter-spacing:.5px;cursor:pointer;transition:all .2s;margin-top:6px;
+}
+.add-btn:active{transform:scale(.98);}
+.add-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+/* ── ACCESSORIES TOGGLE ── */
+.acc-section{margin-top:8px;margin-bottom:18px;}
+.acc-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;color:var(--txt);}
+.acc-toggle-label{font-size:14px;font-weight:600;}
+.acc-toggle-icon{color:var(--cyan);transition:transform .3s;}
+.acc-toggle.open .acc-toggle-icon{transform:rotate(180deg);}
+.acc-list{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+.acc-list.open{max-height:800px;}
+.acc-item{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.04);}
+.acc-check{width:22px;height:22px;border:1px solid var(--line);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;}
+.acc-check.checked{background:var(--cyan);border-color:var(--cyan);}
+.acc-check.checked::after{content:'✓';color:#0a0f08;font-size:14px;font-weight:900;}
+.acc-info{flex:1;}
+.acc-name{font-size:14px;font-weight:500;}
+.acc-price{font-size:12px;color:var(--txt-dim);}
+.acc-qty{display:flex;align-items:center;gap:8px;}
+.qty-btn{width:26px;height:26px;border:1px solid var(--line);background:var(--card);color:var(--cyan);border-radius:6px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.qty-num{font-size:14px;min-width:20px;text-align:center;}
+
+/* ── CART ── */
+.cart-item{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.cart-item-info{flex:1;}
+.cart-item-name{font-size:14px;font-weight:600;margin-bottom:2px;}
+.cart-item-detail{font-size:12px;color:var(--txt-dim);}
+.cart-item-right{display:flex;align-items:center;gap:12px;}
+.cart-item-price{font-size:15px;font-weight:700;color:var(--green);}
+.cart-del{color:#ff5566;font-size:18px;cursor:pointer;background:none;border:none;}
+.cart-empty{text-align:center;padding:50px 20px;color:var(--txt-faint);}
+.cart-empty-icon{font-size:40px;margin-bottom:12px;opacity:.4;}
+
+/* ── SUMMARY ── */
+.summary{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:8px;}
+.sum-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;}
+.sum-row.total{border-top:1px solid var(--line);margin-top:8px;padding-top:12px;font-size:17px;font-weight:700;}
+.sum-label{color:var(--txt-dim);}
+.sum-val{font-weight:600;}
+.sum-val.green{color:var(--green);}
+
+/* ── DELIVERY / PAYMENT OPTION ── */
+.opt-card{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .2s;}
+.opt-card.selected{border-color:var(--cyan);background:rgba(157,255,26,.06);}
+.opt-radio{width:20px;height:20px;border:2px solid var(--line);border-radius:50%;flex-shrink:0;position:relative;}
+.opt-card.selected .opt-radio{border-color:var(--cyan);}
+.opt-card.selected .opt-radio::after{content:'';position:absolute;inset:3px;background:var(--cyan);border-radius:50%;}
+.opt-icon{font-size:22px;}
+.opt-info{flex:1;}
+.opt-name{font-size:15px;font-weight:600;}
+.opt-desc{font-size:12px;color:var(--txt-dim);margin-top:2px;}
+
+/* ── RIB DISPLAY ── */
+.rib-box{background:var(--card);border:1px solid var(--green);border-left:3px solid var(--green);border-radius:12px;padding:20px;margin:16px 0;}
+.rib-title{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:14px;}
+.rib-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.rib-label{font-size:12px;color:var(--txt-dim);}
+.rib-val{font-size:14px;font-weight:600;font-family:'Courier New',monospace;}
+.rib-copy{background:rgba(157,255,26,.1);border:1px solid var(--cyan);color:var(--cyan);font-size:10px;padding:4px 10px;border-radius:6px;cursor:pointer;margin-left:8px;}
+.rib-amount{font-size:24px;font-weight:900;color:var(--green);text-align:center;margin:14px 0;font-family:'Courier New',monospace;}
+
+/* ── SUCCESS ── */
+.success{text-align:center;padding:30px 20px;}
+.success-icon{font-size:60px;margin-bottom:16px;}
+.success-title{font-size:22px;font-weight:800;margin-bottom:10px;color:var(--green);}
+.success-txt{font-size:14px;color:var(--txt-dim);line-height:1.7;margin-bottom:8px;}
+
+/* ── FIXED BOTTOM BAR ── */
+.bottombar{position:fixed;bottom:0;left:0;right:0;background:rgba(5,8,16,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:14px 16px;z-index:100;}
+.bottombar-inner{max-width:600px;margin:0 auto;display:flex;align-items:center;gap:14px;}
+.cart-summary{flex:1;}
+.cart-count{font-size:12px;color:var(--txt-dim);}
+.cart-total{font-size:20px;font-weight:800;color:var(--green);}
+.cta-btn{background:linear-gradient(135deg,var(--green),#6fbf10);border:none;border-radius:12px;padding:15px 28px;color:#0a0f08;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;letter-spacing:.5px;}
+.cta-btn:active{transform:scale(.97);}
+.cta-btn:disabled{opacity:.3;}
+.cta-btn.full{width:100%;}
+
+.step-info{background:rgba(157,255,26,.05);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--txt-dim);line-height:1.6;margin-bottom:16px;}
+.step-info strong{color:var(--cyan);}
+.promo-line{font-size:11px;color:var(--green);text-align:center;padding:10px;opacity:.8;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <img src="logo.png" class="header-logo" alt="RAZOLAB" onerror="this.style.display='none';document.querySelector('.logo-dot').style.display='inline-block';">
+    <div class="logo-dot" style="display:none;"></div>
+    <div class="brand">RAZOLAB</div>
+    <div class="tagline">Recherche avancée · Composés expérimentaux</div>
+  </div>
+
+  <!-- ══ SCREEN: HOME ══ -->
+  <div class="screen active" id="screen-home">
+    <div class="home-menu">
+      <button class="menu-btn" onclick="goScreen('catalogue')">
+        <span class="menu-btn-icon">🧪</span>
+        <span class="menu-btn-txt">
+          <div class="menu-btn-title">Catalogue</div>
+          <div class="menu-btn-sub">Parcourir les composés & passer commande</div>
+        </span>
+        <span class="menu-btn-arrow">→</span>
+      </button>
+      <button class="menu-btn" onclick="goScreen('sav')">
+        <span class="menu-btn-icon">💬</span>
+        <span class="menu-btn-txt">
+          <div class="menu-btn-title">Service client</div>
+          <div class="menu-btn-sub">Une question ? Contacte-nous</div>
+        </span>
+        <span class="menu-btn-arrow">→</span>
+      </button>
+    </div>
+    <div class="home-badges">
+      <span class="hbadge g">› 98,8 % Pureté</span>
+      <span class="hbadge c">COA Janoshik</span>
+      <span class="hbadge c">Envoi discret</span>
+    </div>
+    <div class="promo-line">⚡ Port offert dès 150 € · Mondial Relais 10 €</div>
+  </div>
+
+  <!-- ══ SCREEN: CATALOGUE ══ -->
+  <div class="screen" id="screen-catalogue">
+    <div class="sec-head">
+      <span class="sec-title">🧪 Catalogue</span>
+      <button class="back-btn" onclick="goScreen('home')">← Retour</button>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Catégorie</label>
+      <div class="select-wrap">
+        <select id="sel-cat" onchange="onCatChange()">
+          <option value="">— Choisir une catégorie —</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Molécule</label>
+      <div class="select-wrap">
+        <select id="sel-mol" onchange="onMolChange()" disabled>
+          <option value="">— Choisir d'abord une catégorie —</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field" id="field-pack" style="display:none;">
+      <label class="field-label">Format / Pack</label>
+      <div class="select-wrap">
+        <select id="sel-pack" onchange="onPackChange()">
+          <option value="">— Choisir un format —</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- product info -->
+    <div class="prod-card" id="prod-card">
+      <div class="prod-card-name" id="pc-name"></div>
+      <div class="prod-card-cat" id="pc-cat"></div>
+      <div id="pc-prices"></div>
+    </div>
+
+    <!-- accessories -->
+    <div class="acc-section" id="acc-section" style="display:none;">
+      <button class="acc-toggle" id="acc-toggle" onclick="toggleAcc()">
+        <span class="acc-toggle-label">➕ Ajouter des accessoires (optionnel)</span>
+        <span class="acc-toggle-icon">▾</span>
+      </button>
+      <div class="acc-list" id="acc-list"></div>
+    </div>
+
+    <button class="add-btn" id="add-btn" onclick="addToCart()" disabled>Ajouter au panier</button>
+  </div>
+
+  <!-- ══ SCREEN: CART ══ -->
+  <div class="screen" id="screen-cart">
+    <div class="sec-head">
+      <span class="sec-title">🛒 Mon panier</span>
+      <button class="back-btn" onclick="goScreen('catalogue')">← Catalogue</button>
+    </div>
+    <div id="cart-items"></div>
+    <div class="summary" id="cart-summary" style="display:none;">
+      <div class="sum-row"><span class="sum-label">Sous-total</span><span class="sum-val" id="sum-subtotal"></span></div>
+      <div class="sum-row"><span class="sum-label">Livraison</span><span class="sum-val" id="sum-shipping"></span></div>
+      <div class="sum-row total"><span>Total</span><span class="sum-val green" id="sum-total"></span></div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: DELIVERY ══ -->
+  <div class="screen" id="screen-delivery">
+    <div class="sec-head">
+      <span class="sec-title">🚚 Livraison</span>
+      <button class="back-btn" onclick="goScreen('cart')">← Panier</button>
+    </div>
+    <div class="step-info">Livraison en <strong>Mondial Relais</strong> — <strong>10 €</strong>, offerte dès 150 € d'achat.</div>
+    <div class="opt-card selected" onclick="selectDelivery(this)">
+      <div class="opt-radio"></div>
+      <span class="opt-icon">📦</span>
+      <div class="opt-info">
+        <div class="opt-name">Mondial Relais</div>
+        <div class="opt-desc">Point relais · Envoi discret & suivi</div>
+      </div>
+    </div>
+    <div class="field" style="margin-top:20px;">
+      <label class="field-label">Nom complet</label>
+      <input type="text" id="in-name" placeholder="Prénom et nom">
+    </div>
+    <div class="field">
+      <label class="field-label">E-mail (suivi)</label>
+      <input type="email" id="in-email" placeholder="ton@email.com">
+    </div>
+    <div class="field">
+      <label class="field-label">Téléphone</label>
+      <input type="tel" id="in-phone" placeholder="+33 6 ...">
+    </div>
+    <div class="field">
+      <label class="field-label">Adresse</label>
+      <input type="text" id="in-relay" placeholder="Rue, code postal, ville">
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: PAYMENT ══ -->
+  <div class="screen" id="screen-payment">
+    <div class="sec-head">
+      <span class="sec-title">💳 Paiement</span>
+      <button class="back-btn" onclick="goScreen('delivery')">← Livraison</button>
+    </div>
+    <div class="opt-card selected" onclick="selectPayment(this,'Virement')">
+      <div class="opt-radio"></div>
+      <span class="opt-icon">🏦</span>
+      <div class="opt-info">
+        <div class="opt-name">Virement bancaire</div>
+        <div class="opt-desc">Coordonnées affichées après validation</div>
+      </div>
+    </div>
+    <div class="opt-card" style="opacity:.5;">
+      <div class="opt-radio"></div>
+      <span class="opt-icon">₿</span>
+      <div class="opt-info">
+        <div class="opt-name">Crypto (bientôt)</div>
+        <div class="opt-desc">USDT / BTC — prochainement disponible</div>
+      </div>
+    </div>
+    <div class="summary" style="margin-top:20px;">
+      <div class="sum-row"><span class="sum-label">Sous-total</span><span class="sum-val" id="pay-subtotal"></span></div>
+      <div class="sum-row"><span class="sum-label">Livraison</span><span class="sum-val" id="pay-shipping"></span></div>
+      <div class="sum-row total"><span>Total à régler</span><span class="sum-val green" id="pay-total"></span></div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: RIB / CONFIRM ══ -->
+  <div class="screen" id="screen-rib">
+    <div class="success">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Commande enregistrée !</div>
+      <div class="success-txt">Effectue le virement avec les coordonnées ci-dessous.<br>Ta commande part sous 24-48h après réception.</div>
+    </div>
+    <div class="rib-amount" id="rib-amount"></div>
+    <div class="rib-box">
+      <div class="rib-title">🏦 Coordonnées bancaires</div>
+      <div class="rib-row"><span class="rib-label">Bénéficiaire</span><span class="rib-val" id="rib-name">RAZOLAB</span></div>
+      <div class="rib-row"><span class="rib-label">IBAN</span><span class="rib-val" id="rib-iban">FR76 XXXX XXXX XXXX</span></div>
+      <div class="rib-row"><span class="rib-label">BIC</span><span class="rib-val" id="rib-bic">XXXXXXXX</span></div>
+      <div class="rib-row" style="border:none;"><span class="rib-label">Référence</span><span class="rib-val" id="rib-ref"></span></div>
+    </div>
+    <div class="step-info">⚠️ <strong>Important :</strong> indique bien la <strong>référence</strong> dans le motif du virement pour qu'on identifie ta commande. Envoie une capture du virement au service client pour accélérer le traitement.</div>
+  </div>
+
+  <!-- ══ SCREEN: SAV ══ -->
+  <div class="screen" id="screen-sav">
+    <div class="sec-head">
+      <span class="sec-title">💬 Service client</span>
+      <button class="back-btn" onclick="goScreen('home')">← Retour</button>
+    </div>
+    <div class="step-info">Une question sur un produit, un protocole, ta commande ou un COA ? Écris-nous directement, on répond vite.</div>
+    <button class="add-btn" onclick="contactSAV()">Contacter le service client</button>
+  </div>
+
+</div>
+
+<!-- ══ FIXED BOTTOM BAR ══ -->
+<div class="bottombar" id="bottombar" style="display:none;">
+  <div class="bottombar-inner" id="bb-inner"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  TELEGRAM INIT
+// ═══════════════════════════════════════════
+const tg = window.Telegram?.WebApp;
+if(tg){ tg.ready(); tg.expand(); }
+
+const ADMIN_USERNAME = "RAZOLAB"; // ← ton @username Telegram (sans @)
+
+// ═══════════════════════════════════════════
+//  RIB — À MODIFIER AVEC TES VRAIES COORDONNÉES
+// ═══════════════════════════════════════════
+const RIB = {
+  name: "Jean Cournut",
+  iban: "FR76 2823 3000 0107 8104 4535 279",
+  bic:  "REVOFRP2",
+};
+
+// ═══════════════════════════════════════════
+//  📦 GESTION DU STOCK — GOOGLE SHEET
+//  Le stock est lu depuis ton onglet "STOCK MINIAPP".
+//  Un produit à 0 (ou absent) apparaît en RUPTURE.
+//
+//  ⚙️ CONFIG : colle ici l'URL CSV publiée de ton onglet Stock
+//  (Fichier → Partager → Publier sur le web → onglet STOCK → CSV)
+// ═══════════════════════════════════════════
+const STOCK_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQLWN7IQPgryFpCyj0Fzu2f4Oe_a9Edfmg1sj4iF0-TRUSyaEzR8k9DVW48oP2YyuW847xves_mEOPl/pub?gid=1687285250&single=true&output=csv";
+
+// Stock chargé dynamiquement { CODE: quantité }
+let STOCK = {};
+// Fallback manuel si le Sheet est injoignable (optionnel)
+const RUPTURE_MANUELLE = [
+  // "RT50",  ← codes forcés en rupture même si le Sheet dit dispo
+];
+
+// Charge le stock depuis le Google Sheet
+async function loadStock(){
+  if(!STOCK_CSV_URL || STOCK_CSV_URL.includes("COLLE_ICI")){
+    console.log("Stock : URL non configurée, tous produits dispo par défaut.");
+    return;
+  }
+  try{
+    const res = await fetch(STOCK_CSV_URL + "&_=" + Date.now()); // anti-cache
+    const csv = await res.text();
+    const lines = csv.split("\n").slice(1); // saute l'en-tête
+    lines.forEach(line=>{
+      const cols = line.split(",");
+      if(cols.length>=3){
+        // 1ère colonne = Code, DERNIÈRE colonne = Stock
+        // (robuste même si le nom du produit contient une virgule)
+        const code = cols[0].trim().replace(/"/g,'');
+        const stock = parseInt(cols[cols.length-1].trim().replace(/"/g,''),10);
+        if(code) STOCK[code] = isNaN(stock)?0:stock;
+      }
+    });
+    console.log("Stock chargé :", Object.keys(STOCK).length, "produits");
+  }catch(e){
+    console.log("Stock : impossible de charger le Sheet, produits dispo par défaut.", e);
+  }
+}
+
+// Un produit est en rupture si stock ≤ 0 OU forcé manuellement
+function isRupture(code){
+  if(RUPTURE_MANUELLE.includes(code)) return true;
+  if(code in STOCK) return STOCK[code] <= 0;
+  return false; // pas dans le sheet = considéré dispo
+}
+
+// ═══════════════════════════════════════════
+//  CATALOGUE
+//  cat -> couleur ; produits { code, nom, cat, p1, p5, p10 }
+// ═══════════════════════════════════════════
+const CATEGORIES = [
+  "⚖️ Métabolisme",
+  "🔬 HGH & Sécrétagogues",
+  "🧬 Hormonal",
+  "🩹 Récupération",
+  "👑 Anti-Âge & Vitalité",
+  "🧠 Neurologique",
+];
+
+const PRODUCTS = {
+  // ⚖️ Métabolisme
+  "RT10":{nom:"Retatrutide 10mg",cat:"⚖️ Métabolisme",p1:60,p5:270,p10:450},
+  // 🔬 HGH & Sécrétagogues
+  "TSM10":{nom:"Tésamoréline 10mg",cat:"🔬 HGH & Sécrétagogues",p1:85,p5:380,p10:650},
+  "IP10":{nom:"Ipamoréline 10mg",cat:"🔬 HGH & Sécrétagogues",p1:50,p5:225,p10:380},
+  "CND5":{nom:"CJC-1295 sans DAC 5mg",cat:"🔬 HGH & Sécrétagogues",p1:50,p5:225,p10:380},
+  // 🧬 Hormonal
+  "IG01":{nom:"IGF-1 LR3 0,1mg",cat:"🧬 Hormonal",p1:35,p5:155,p10:260},
+  // 🩹 Récupération
+  "BC5":{nom:"BPC-157 5mg",cat:"🩹 Récupération",p1:35,p5:155,p10:260},
+  "BT5":{nom:"BPC 5mg + TB 5mg",cat:"🩹 Récupération",p1:75,p5:335,p10:570},
+  "BBG70":{nom:"Mélange Glow 70mg",cat:"🩹 Récupération",p1:95,p5:425,p10:730},
+  // 👑 Anti-Âge & Vitalité
+  "CU50":{nom:"GHK-Cu 50mg",cat:"👑 Anti-Âge & Vitalité",p1:35,p5:155,p10:260},
+  "CU100":{nom:"GHK-Cu 100mg",cat:"👑 Anti-Âge & Vitalité",p1:40,p5:180,p10:300},
+  "ML10":{nom:"Mélanotan II 10mg",cat:"👑 Anti-Âge & Vitalité",p1:40,p5:180,p10:300},
+  "MT-1":{nom:"Mélanotan I 10mg",cat:"👑 Anti-Âge & Vitalité",p1:40,p5:180,p10:300},
+  "MS10":{nom:"MOTS-C 10mg",cat:"👑 Anti-Âge & Vitalité",p1:40,p5:180,p10:300},
+  "NJ1000":{nom:"NAD+ 1000mg",cat:"👑 Anti-Âge & Vitalité",p1:75,p5:335,p10:570},
+  // 🧠 Neurologique
+  "SK5":{nom:"Sélank 5mg",cat:"🧠 Neurologique",p1:35,p5:155,p10:260},
+};
+
+// Accessoires (prix unitaires cohérents avec le catalogue)
+const ACCESSORIES = [
+  {code:"KIT3",  nom:"Kit reconstitution 3ml",  price:8},
+  {code:"KIT10", nom:"Kit reconstitution 10ml", price:12},
+  {code:"BA10",  nom:"Eau bactériostatique 10ml", price:6},
+  {code:"WA10",  nom:"Eau stérile 10ml", price:4.5},
+  {code:"SERI1", nom:"Seringues insuline ×10", price:5.5},
+  {code:"TAMP",  nom:"Tampons alcool ×20", price:3.5},
+];
+
+const SHIPPING = 10;
+const FREE_SHIP = 150;
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let cart = [];
+let currentSel = { cat:"", mol:"", pack:"", acc:{} };
+let delivery = "Mondial Relais";
+let payment = "Virement";
+
+// ═══════════════════════════════════════════
+//  INIT DROPDOWNS
+// ═══════════════════════════════════════════
+function initCatalogue(){
+  const selCat = document.getElementById('sel-cat');
+  CATEGORIES.forEach(c=>{
+    const o=document.createElement('option');o.value=c;o.textContent=c;selCat.appendChild(o);
+  });
+  // accessories list
+  const accList=document.getElementById('acc-list');
+  ACCESSORIES.forEach(a=>{
+    currentSel.acc[a.code]=0;
+    const row=document.createElement('div');
+    row.className='acc-item';
+    row.innerHTML=`
+      <div class="acc-check" id="chk-${a.code}" onclick="toggleAccItem('${a.code}')"></div>
+      <div class="acc-info"><div class="acc-name">${a.nom}</div><div class="acc-price">${a.price.toFixed(2)} €</div></div>
+      <div class="acc-qty">
+        <button class="qty-btn" onclick="accQty('${a.code}',-1)">−</button>
+        <span class="qty-num" id="qty-${a.code}">0</span>
+        <button class="qty-btn" onclick="accQty('${a.code}',1)">+</button>
+      </div>`;
+    accList.appendChild(row);
+  });
+}
+
+function onCatChange(){
+  const cat=document.getElementById('sel-cat').value;
+  currentSel.cat=cat; currentSel.mol=""; currentSel.pack="";
+  const selMol=document.getElementById('sel-mol');
+  selMol.innerHTML='<option value="">— Choisir une molécule —</option>';
+  document.getElementById('field-pack').style.display='none';
+  document.getElementById('prod-card').classList.remove('show');
+  document.getElementById('acc-section').style.display='none';
+  document.getElementById('add-btn').disabled=true;
+  if(!cat){selMol.disabled=true;return;}
+  selMol.disabled=false;
+  Object.keys(PRODUCTS).filter(k=>PRODUCTS[k].cat===cat).forEach(code=>{
+    const enRupture=RUPTURE.includes(code);
+    const o=document.createElement('option');
+    o.value=code;
+    o.textContent=PRODUCTS[code].nom + (enRupture?'  — ⛔ RUPTURE':'');
+    if(enRupture){o.disabled=true;o.style.color='#666';}
+    selMol.appendChild(o);
+  });
+}
+
+function isRupture_OLD_REMOVED(code){return false;}
+
+function onMolChange(){
+  const code=document.getElementById('sel-mol').value;
+  currentSel.mol=code; currentSel.pack="";
+  const fieldPack=document.getElementById('field-pack');
+  const selPack=document.getElementById('sel-pack');
+  document.getElementById('prod-card').classList.remove('show');
+  document.getElementById('acc-section').style.display='none';
+  document.getElementById('add-btn').disabled=true;
+  if(!code){fieldPack.style.display='none';return;}
+  const p=PRODUCTS[code];
+  selPack.innerHTML='<option value="">— Choisir un format —</option>';
+  const opts=[['x1','1 fiole',p.p1]];
+  if(p.p5) opts.push(['x5','Lot × 5',p.p5]);
+  if(p.p10) opts.push(['x10','Lot × 10 ⚡',p.p10]);
+  opts.forEach(([v,l,pr])=>{
+    const o=document.createElement('option');o.value=v;o.textContent=`${l} — ${pr} €`;selPack.appendChild(o);
+  });
+  fieldPack.style.display='block';
+  // show product card
+  document.getElementById('pc-name').textContent=p.nom;
+  document.getElementById('pc-cat').textContent=p.cat;
+  let ph='';
+  ph+=`<div class="prod-price-row"><span class="prod-price-label">1 fiole</span><span class="prod-price-val">${p.p1} €</span></div>`;
+  if(p.p5) ph+=`<div class="prod-price-row"><span class="prod-price-label">Lot × 5</span><span class="prod-price-val">${p.p5} €</span></div>`;
+  if(p.p10) ph+=`<div class="prod-price-row"><span class="prod-price-label">Lot × 10</span><span class="prod-price-val green">${p.p10} €</span></div>`;
+  document.getElementById('pc-prices').innerHTML=ph;
+  document.getElementById('prod-card').classList.add('show');
+}
+
+function onPackChange(){
+  const pack=document.getElementById('sel-pack').value;
+  currentSel.pack=pack;
+  document.getElementById('acc-section').style.display= pack?'block':'none';
+  // bloque l'ajout si produit en rupture
+  document.getElementById('add-btn').disabled=(!pack || isRupture(currentSel.mol));
+}
+
+function toggleAcc(){
+  document.getElementById('acc-toggle').classList.toggle('open');
+  document.getElementById('acc-list').classList.toggle('open');
+}
+function toggleAccItem(code){
+  const cur=currentSel.acc[code];
+  currentSel.acc[code]= cur>0?0:1;
+  refreshAcc(code);
+}
+function accQty(code,delta){
+  currentSel.acc[code]=Math.max(0,currentSel.acc[code]+delta);
+  refreshAcc(code);
+}
+function refreshAcc(code){
+  const q=currentSel.acc[code];
+  document.getElementById('qty-'+code).textContent=q;
+  document.getElementById('chk-'+code).classList.toggle('checked',q>0);
+}
+
+// ═══════════════════════════════════════════
+//  CART
+// ═══════════════════════════════════════════
+function packLabel(pack){return pack==='x1'?'1 fiole':pack==='x5'?'Lot × 5':'Lot × 10';}
+function packPrice(code,pack){const p=PRODUCTS[code];return pack==='x1'?p.p1:pack==='x5'?p.p5:p.p10;}
+
+function addToCart(){
+  const {mol,pack}=currentSel;
+  if(!mol||!pack)return;
+  if(isRupture(mol)){alert('Ce produit est actuellement en rupture de stock.');return;}
+  const p=PRODUCTS[mol];
+  const price=packPrice(mol,pack);
+  cart.push({type:'prod',code:mol,nom:p.nom,pack:packLabel(pack),price:price});
+  // accessories
+  ACCESSORIES.forEach(a=>{
+    const q=currentSel.acc[a.code];
+    if(q>0){
+      for(const it of cart){
+        if(it.type==='acc'&&it.code===a.code){it.qty+=q;it.price+=a.price*q;return;}
+      }
+      cart.push({type:'acc',code:a.code,nom:a.nom,qty:q,price:a.price*q});
+    }
+  });
+  // reset selection
+  document.getElementById('sel-cat').value='';
+  onCatChange();
+  ACCESSORIES.forEach(a=>{currentSel.acc[a.code]=0;refreshAcc(a.code);});
+  document.getElementById('acc-toggle').classList.remove('open');
+  document.getElementById('acc-list').classList.remove('open');
+  if(tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+  updateBottomBar();
+  goScreen('cart');
+}
+
+function delCartItem(i){cart.splice(i,1);renderCart();updateBottomBar();}
+
+function subtotal(){return cart.reduce((s,it)=>s+it.price,0);}
+function shipping(){return subtotal()>=FREE_SHIP?0:(cart.length?SHIPPING:0);}
+function total(){return subtotal()+shipping();}
+
+function renderCart(){
+  const box=document.getElementById('cart-items');
+  const sum=document.getElementById('cart-summary');
+  if(!cart.length){
+    box.innerHTML=`<div class="cart-empty"><div class="cart-empty-icon">🛒</div>Ton panier est vide.<br>Ajoute des produits depuis le catalogue.</div>`;
+    sum.style.display='none';return;
+  }
+  box.innerHTML=cart.map((it,i)=>`
+    <div class="cart-item">
+      <div class="cart-item-info">
+        <div class="cart-item-name">${it.nom}</div>
+        <div class="cart-item-detail">${it.type==='prod'?it.pack:'×'+it.qty}</div>
+      </div>
+      <div class="cart-item-right">
+        <span class="cart-item-price">${it.price.toFixed(2)} €</span>
+        <button class="cart-del" onclick="delCartItem(${i})">✕</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('sum-subtotal').textContent=subtotal().toFixed(2)+' €';
+  document.getElementById('sum-shipping').textContent=shipping()===0?'OFFERTE ✅':shipping().toFixed(2)+' €';
+  document.getElementById('sum-total').textContent=total().toFixed(2)+' €';
+  sum.style.display='block';
+}
+
+// ═══════════════════════════════════════════
+//  NAV
+// ═══════════════════════════════════════════
+function goScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  window.scrollTo(0,0);
+  if(name==='cart')renderCart();
+  updateBottomBar();
+}
+
+function updateBottomBar(){
+  const bar=document.getElementById('bottombar');
+  const inner=document.getElementById('bb-inner');
+  const active=document.querySelector('.screen.active').id;
+  // Home & SAV: hide bar
+  if(active==='screen-home'||active==='screen-sav'||active==='screen-rib'){bar.style.display='none';return;}
+  bar.style.display='block';
+
+  if(active==='screen-catalogue'||active==='screen-cart'){
+    if(!cart.length){
+      if(active==='screen-catalogue'){bar.style.display='none';return;}
+      inner.innerHTML=`<div class="cart-summary"><div class="cart-count">Panier vide</div></div>`;
+      return;
+    }
+    inner.innerHTML=`
+      <div class="cart-summary">
+        <div class="cart-count">${cart.length} article${cart.length>1?'s':''}</div>
+        <div class="cart-total">${total().toFixed(2)} €</div>
+      </div>
+      <button class="cta-btn" onclick="goScreen('${active==='screen-catalogue'?'cart':'delivery'}')">${active==='screen-catalogue'?'Voir panier':'Commander'} →</button>`;
+  }
+  else if(active==='screen-delivery'){
+    inner.innerHTML=`<button class="cta-btn full" onclick="validateDelivery()">Continuer vers paiement →</button>`;
+  }
+  else if(active==='screen-payment'){
+    document.getElementById('pay-subtotal').textContent=subtotal().toFixed(2)+' €';
+    document.getElementById('pay-shipping').textContent=shipping()===0?'OFFERTE ✅':shipping().toFixed(2)+' €';
+    document.getElementById('pay-total').textContent=total().toFixed(2)+' €';
+    inner.innerHTML=`<button class="cta-btn full" onclick="confirmOrder()">Valider la commande →</button>`;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  DELIVERY / PAYMENT
+// ═══════════════════════════════════════════
+function selectDelivery(el){document.querySelectorAll('#screen-delivery .opt-card').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
+function selectPayment(el,method){
+  if(method!=='Virement')return;
+  document.querySelectorAll('#screen-payment .opt-card').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');payment=method;
+}
+function validateDelivery(){
+  const name=document.getElementById('in-name').value.trim();
+  const email=document.getElementById('in-email').value.trim();
+  const phone=document.getElementById('in-phone').value.trim();
+  const relay=document.getElementById('in-relay').value.trim();
+  if(!name||!email||!phone||!relay){
+    if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred('error');
+    alert('Merci de remplir tous les champs de livraison.');return;
+  }
+  window._order={name,email,phone,relay};
+  goScreen('payment');
+}
+
+// ═══════════════════════════════════════════
+//  CONFIRM → generate ref, show RIB, send to bot
+// ═══════════════════════════════════════════
+function confirmOrder(){
+  const ref='RZL-'+Date.now().toString().slice(-6);
+  const o=window._order;
+  const items=cart.map(it=>it.type==='prod'?`${it.nom} (${it.pack}) — ${it.price.toFixed(2)}€`:`${it.nom} ×${it.qty} — ${it.price.toFixed(2)}€`);
+
+  // fill RIB screen
+  document.getElementById('rib-amount').textContent=total().toFixed(2)+' €';
+  document.getElementById('rib-name').textContent=RIB.name;
+  document.getElementById('rib-iban').textContent=RIB.iban;
+  document.getElementById('rib-bic').textContent=RIB.bic;
+  document.getElementById('rib-ref').textContent=ref;
+
+  // payload envoyé au bot
+  const payload={
+    ref,
+    client:o,
+    delivery:'Mondial Relais',
+    payment:'Virement',
+    items:cart,
+    subtotal:subtotal(),
+    shipping:shipping(),
+    total:total(),
+  };
+
+  // Envoi au bot via Telegram
+  if(tg){
+    try{ tg.sendData(JSON.stringify(payload)); }catch(e){ console.log(e); }
+    if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');
+  }
+  goScreen('rib');
+}
+
+function contactSAV(){
+  if(tg){ tg.openTelegramLink('https://t.me/'+ADMIN_USERNAME); }
+  else{ window.open('https://t.me/'+ADMIN_USERNAME,'_blank'); }
+}
+
+// ═══════════════════════════════════════════
+initCatalogue();
+updateBottomBar();
+
+// Charge le stock depuis le Google Sheet au démarrage
+loadStock().then(()=>{
+  console.log("Stock prêt.");
+});
+</script>
+</body>
+</html>
