@@ -162,6 +162,10 @@ input::placeholder{color:var(--txt-faint);}
 .rib-val{font-size:14px;font-weight:600;font-family:'Courier New',monospace;}
 .rib-copy{background:rgba(157,255,26,.1);border:1px solid var(--cyan);color:var(--cyan);font-size:10px;padding:4px 10px;border-radius:6px;cursor:pointer;margin-left:8px;}
 .rib-amount{font-size:24px;font-weight:900;color:var(--green);text-align:center;margin:14px 0;font-family:'Courier New',monospace;}
+.ref-warning{background:rgba(157,255,26,.08);border:2px solid var(--green);border-radius:14px;padding:18px 16px;margin:16px 0;text-align:center;}
+.ref-warning-label{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--green);margin-bottom:8px;}
+.ref-warning-text{font-size:14px;color:var(--txt);line-height:1.6;}
+.ref-warning-code{font-size:22px;font-weight:900;font-family:'Courier New',monospace;color:var(--green);background:rgba(157,255,26,.1);border-radius:8px;padding:8px 16px;display:inline-block;margin-top:10px;letter-spacing:2px;text-shadow:0 0 12px rgba(157,255,26,.4);}
 
 /* ── SUCCESS ── */
 .success{text-align:center;padding:30px 20px;}
@@ -368,7 +372,13 @@ input::placeholder{color:var(--txt-faint);}
       <div class="rib-row"><span class="rib-label">BIC</span><span class="rib-val" id="rib-bic">XXXXXXXX</span></div>
       <div class="rib-row" style="border:none;"><span class="rib-label">Référence</span><span class="rib-val" id="rib-ref"></span></div>
     </div>
-    <div class="step-info">⚠️ <strong>Important :</strong> indique bien la <strong>référence</strong> dans le motif du virement pour qu'on identifie ta commande. Envoie une capture du virement au service client pour accélérer le traitement.</div>
+    <div class="ref-warning">
+      <div class="ref-warning-label">⚠️ Référence obligatoire</div>
+      <div class="ref-warning-text">Indique impérativement cette référence dans le <strong>motif de ton virement</strong> pour qu'on identifie ta commande :</div>
+      <div class="ref-warning-code" id="ref-warning-code"></div>
+    </div>
+    <button class="cta-btn full" style="margin-top:8px;" onclick="sendOrderToAdmin()">📩 Envoyer ma commande</button>
+    <div class="step-info" style="margin-top:12px;text-align:center;">Clique ci-dessus pour finaliser : ta commande s'ouvre dans notre messagerie, il te suffit d'appuyer sur <strong>Envoyer</strong>.</div>
   </div>
 
   <!-- ══ SCREEN: SAV ══ -->
@@ -395,7 +405,7 @@ input::placeholder{color:var(--txt-faint);}
 const tg = window.Telegram?.WebApp;
 if(tg){ tg.ready(); tg.expand(); }
 
-const ADMIN_USERNAME = "RAZOLAB"; // ← ton @username Telegram (sans @)
+const ADMIN_USERNAME = "RAZO_LB"; // ← ton @username Telegram perso (sans @)
 
 // ═══════════════════════════════════════════
 //  RIB — À MODIFIER AVEC TES VRAIES COORDONNÉES
@@ -753,7 +763,6 @@ function validateDelivery(){
 function confirmOrder(){
   const ref='RZL-'+Date.now().toString().slice(-6);
   const o=window._order;
-  const items=cart.map(it=>it.type==='prod'?`${it.nom} (${it.pack}) — ${it.price.toFixed(2)}€`:`${it.nom} ×${it.qty} — ${it.price.toFixed(2)}€`);
 
   // fill RIB screen
   document.getElementById('rib-amount').textContent=total().toFixed(2)+' €';
@@ -761,25 +770,54 @@ function confirmOrder(){
   document.getElementById('rib-iban').textContent=RIB.iban;
   document.getElementById('rib-bic').textContent=RIB.bic;
   document.getElementById('rib-ref').textContent=ref;
+  document.getElementById('ref-warning-code').textContent=ref;
 
-  // payload envoyé au bot
+  // payload structuré (pour bot Option 1)
   const payload={
-    ref,
-    client:o,
-    delivery:'Mondial Relais',
-    payment:'Virement',
-    items:cart,
-    subtotal:subtotal(),
-    shipping:shipping(),
-    total:total(),
+    ref, client:o, delivery:'Mondial Relais', payment:'Virement',
+    items:cart, subtotal:subtotal(), shipping:shipping(), total:total(),
   };
 
-  // Envoi au bot via Telegram
+  // ─── Récap texte lisible (pour Option 2 : message pré-rempli) ───
+  let lignes='';
+  cart.forEach(it=>{
+    lignes += it.type==='prod'
+      ? `▸ ${it.nom} (${it.pack}) — ${it.price.toFixed(2)}€\n`
+      : `▸ ${it.nom} ×${it.qty} — ${it.price.toFixed(2)}€\n`;
+  });
+  const recapText =
+`🔔 NOUVELLE COMMANDE RAZOLAB
+Réf : ${ref}
+
+🧪 PRODUITS
+${lignes}
+👤 CLIENT
+Nom : ${o.name}
+Email : ${o.email}
+Tél : ${o.phone}
+Adresse : ${o.relay}
+
+🚚 Mondial Relais
+💳 Virement
+💰 TOTAL : ${total().toFixed(2)}€`;
+
+  window._recapText = recapText;
+  window._orderPayload = payload;
+
+  // Envoi auto au bot si dispo (Option 1)
   if(tg){
     try{ tg.sendData(JSON.stringify(payload)); }catch(e){ console.log(e); }
     if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');
   }
   goScreen('rib');
+}
+
+// Option 2 : ouvre la DM admin avec le récap pré-rempli
+function sendOrderToAdmin(){
+  const txt = encodeURIComponent(window._recapText || '');
+  const url = 'https://t.me/'+ADMIN_USERNAME+'?text='+txt;
+  if(tg){ tg.openTelegramLink(url); }
+  else{ window.open(url,'_blank'); }
 }
 
 function contactSAV(){
