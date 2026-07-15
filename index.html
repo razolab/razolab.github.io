@@ -135,6 +135,16 @@ input::placeholder{color:var(--txt-faint);}
 .cart-empty{text-align:center;padding:50px 20px;color:var(--txt-faint);}
 .cart-empty-icon{font-size:40px;margin-bottom:12px;opacity:.4;}
 
+/* ── PROMO ── */
+.promo-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:6px;}
+.promo-row{display:flex;gap:8px;}
+.promo-row input{flex:1;text-transform:uppercase;}
+.promo-btn{background:rgba(157,255,26,.12);border:1px solid var(--green);color:var(--green);border-radius:12px;padding:0 20px;font-size:14px;font-weight:700;cursor:pointer;}
+.promo-btn:active{transform:scale(.96);}
+.promo-msg{font-size:12px;margin-top:8px;min-height:14px;}
+.promo-msg.ok{color:var(--green);}
+.promo-msg.ko{color:#ff5566;}
+
 /* ── SUMMARY ── */
 .summary{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:8px;}
 .sum-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;}
@@ -288,8 +298,19 @@ input::placeholder{color:var(--txt-faint);}
       <button class="back-btn" onclick="goScreen('catalogue')">← Catalogue</button>
     </div>
     <div id="cart-items"></div>
+
+    <div class="promo-box" id="promo-box" style="display:none;">
+      <label class="field-label">🎟️ Code promo</label>
+      <div class="promo-row">
+        <input type="text" id="in-promo" placeholder="Entrer un code" autocapitalize="characters">
+        <button class="promo-btn" onclick="appliquerPromo()">OK</button>
+      </div>
+      <div class="promo-msg" id="promo-msg"></div>
+    </div>
+
     <div class="summary" id="cart-summary" style="display:none;">
       <div class="sum-row"><span class="sum-label">Sous-total</span><span class="sum-val" id="sum-subtotal"></span></div>
+      <div class="sum-row" id="sum-remise-row" style="display:none;"><span class="sum-label" id="sum-remise-label">Remise</span><span class="sum-val green" id="sum-remise"></span></div>
       <div class="sum-row"><span class="sum-label">Livraison</span><span class="sum-val" id="sum-shipping"></span></div>
       <div class="sum-row total"><span>Total</span><span class="sum-val green" id="sum-total"></span></div>
     </div>
@@ -352,6 +373,7 @@ input::placeholder{color:var(--txt-faint);}
     </div>
     <div class="summary" style="margin-top:20px;">
       <div class="sum-row"><span class="sum-label">Sous-total</span><span class="sum-val" id="pay-subtotal"></span></div>
+      <div class="sum-row" id="pay-remise-row" style="display:none;"><span class="sum-label" id="pay-remise-label">Remise</span><span class="sum-val green" id="pay-remise"></span></div>
       <div class="sum-row"><span class="sum-label">Livraison</span><span class="sum-val" id="pay-shipping"></span></div>
       <div class="sum-row total"><span>Total à régler</span><span class="sum-val green" id="pay-total"></span></div>
     </div>
@@ -517,6 +539,18 @@ const SHIPPING = 10;
 const FREE_SHIP = 150;
 
 // ═══════════════════════════════════════════
+//  🎟️ CODES PROMO
+//  type "pct" = pourcentage / type "eur" = montant fixe en €
+//  Pour désactiver un code : supprime sa ligne.
+//  Pour changer un code : renomme la clé (ex: "RAZO10" → "RAZO15")
+// ═══════════════════════════════════════════
+const PROMOS = {
+  "RAZO10":  { type:"pct", val:10, label:"-10 %" },
+  "FIDELE20":{ type:"eur", val:20, label:"-20 €" },
+};
+let promoActif = null; // { code, type, val, label }
+
+// ═══════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════
 let cart = [];
@@ -666,16 +700,50 @@ function addToCart(){
 function delCartItem(i){cart.splice(i,1);renderCart();updateBottomBar();}
 
 function subtotal(){return cart.reduce((s,it)=>s+it.price,0);}
-function shipping(){return subtotal()>=FREE_SHIP?0:(cart.length?SHIPPING:0);}
-function total(){return subtotal()+shipping();}
+
+// Montant de la remise (0 si aucun code)
+function remise(){
+  if(!promoActif) return 0;
+  var st = subtotal();
+  var r = promoActif.type==="pct" ? st*promoActif.val/100 : promoActif.val;
+  return Math.min(r, st); // jamais plus que le sous-total
+}
+// Sous-total après remise (sert de base au port offert)
+function sousTotalRemise(){return subtotal()-remise();}
+function shipping(){return sousTotalRemise()>=FREE_SHIP?0:(cart.length?SHIPPING:0);}
+function total(){return sousTotalRemise()+shipping();}
+
+// Applique le code saisi
+function appliquerPromo(){
+  var champ = document.getElementById('in-promo');
+  var msg   = document.getElementById('promo-msg');
+  var code  = champ.value.trim().toUpperCase();
+  if(!code){ promoActif=null; msg.textContent=''; msg.className='promo-msg'; renderCart(); updateBottomBar(); return; }
+  if(PROMOS[code]){
+    promoActif = Object.assign({code:code}, PROMOS[code]);
+    msg.textContent = '✅ Code appliqué : '+promoActif.label;
+    msg.className = 'promo-msg ok';
+    if(tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+  } else {
+    promoActif = null;
+    msg.textContent = '❌ Code invalide';
+    msg.className = 'promo-msg ko';
+    if(tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+  }
+  renderCart(); updateBottomBar();
+}
 
 function renderCart(){
   const box=document.getElementById('cart-items');
   const sum=document.getElementById('cart-summary');
+  const promoBox=document.getElementById('promo-box');
   if(!cart.length){
     box.innerHTML=`<div class="cart-empty"><div class="cart-empty-icon">🛒</div>Ton panier est vide.<br>Ajoute des produits depuis le catalogue.</div>`;
-    sum.style.display='none';return;
+    sum.style.display='none';
+    if(promoBox) promoBox.style.display='none';
+    return;
   }
+  if(promoBox) promoBox.style.display='block';
   box.innerHTML=cart.map((it,i)=>`
     <div class="cart-item">
       <div class="cart-item-info">
@@ -688,6 +756,12 @@ function renderCart(){
       </div>
     </div>`).join('');
   document.getElementById('sum-subtotal').textContent=subtotal().toFixed(2)+' €';
+  const rRow=document.getElementById('sum-remise-row');
+  if(remise()>0){
+    rRow.style.display='flex';
+    document.getElementById('sum-remise-label').textContent='Remise ('+promoActif.code+')';
+    document.getElementById('sum-remise').textContent='− '+remise().toFixed(2)+' €';
+  } else { rRow.style.display='none'; }
   document.getElementById('sum-shipping').textContent=shipping()===0?'OFFERTE ✅':shipping().toFixed(2)+' €';
   document.getElementById('sum-total').textContent=total().toFixed(2)+' €';
   sum.style.display='block';
@@ -730,6 +804,12 @@ function updateBottomBar(){
   }
   else if(active==='screen-payment'){
     document.getElementById('pay-subtotal').textContent=subtotal().toFixed(2)+' €';
+    const payR=document.getElementById('pay-remise-row');
+    if(remise()>0){
+      payR.style.display='flex';
+      document.getElementById('pay-remise-label').textContent='Remise ('+promoActif.code+')';
+      document.getElementById('pay-remise').textContent='− '+remise().toFixed(2)+' €';
+    } else { payR.style.display='none'; }
     document.getElementById('pay-shipping').textContent=shipping()===0?'OFFERTE ✅':shipping().toFixed(2)+' €';
     document.getElementById('pay-total').textContent=total().toFixed(2)+' €';
     inner.innerHTML=`<button class="cta-btn full" onclick="confirmOrder()">Valider la commande →</button>`;
@@ -787,7 +867,9 @@ function confirmOrder(){
   });
   const recapText =
 `🔔 NOUVELLE COMMANDE RAZOLAB
-Réf : ${ref}
+
+📌 RÉFÉRENCE : ${ref}
+━━━━━━━━━━━━━━━
 
 🧪 PRODUITS
 ${lignes}
@@ -797,9 +879,12 @@ Email : ${o.email}
 Tél : ${o.phone}
 Adresse : ${o.relay}
 
-🚚 Mondial Relais
-💳 Virement
-💰 TOTAL : ${total().toFixed(2)}€`;
+🚚 Livraison : Mondial Relais
+💳 Paiement : Virement${promoActif ? '\n🎟️ Code promo : '+promoActif.code+' ('+promoActif.label+') → −'+remise().toFixed(2)+'€' : ''}
+💰 TOTAL : ${total().toFixed(2)}€
+
+━━━━━━━━━━━━━━━
+📌 Réf. virement : ${ref}`;
 
   window._recapText = recapText;
   window._orderPayload = payload;
