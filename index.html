@@ -472,7 +472,7 @@ async function loadStock(){
         // (robuste même si le nom du produit contient une virgule)
         const code = cols[0].trim().replace(/"/g,'');
         const stock = parseInt(cols[cols.length-1].trim().replace(/"/g,''),10);
-        if(code) STOCK[code] = isNaN(stock)?0:stock;
+        if(code) STOCK[code.toUpperCase()] = isNaN(stock)?0:stock;
       }
     });
     console.log("Stock chargé :", Object.keys(STOCK).length, "produits");
@@ -483,8 +483,9 @@ async function loadStock(){
 
 // Un produit est en rupture si stock ≤ 0 OU forcé manuellement
 function isRupture(code){
-  if(RUPTURE_MANUELLE.includes(code)) return true;
-  if(code in STOCK) return STOCK[code] <= 0;
+  var c = code.toUpperCase();
+  if(RUPTURE_MANUELLE.map(x=>x.toUpperCase()).includes(c)) return true;
+  if(c in STOCK) return STOCK[c] <= 0;
   return false; // pas dans le sheet = considéré dispo
 }
 
@@ -513,7 +514,8 @@ const PRODUCTS = {
   // 🩹 Récupération
   "BC5":{nom:"BPC-157 5mg",cat:"🩹 Récupération",p1:35,p5:155,p10:260},
   "BT5":{nom:"BPC 5mg + TB 5mg",cat:"🩹 Récupération",p1:75,p5:335,p10:570},
-  "BBG70":{nom:"Mélange Glow 70mg",cat:"🩹 Récupération",p1:95,p5:425,p10:730},
+  "BBG70":{nom:"GLOW 70mg",cat:"🩹 Récupération",p1:95,p5:425,p10:730},
+  "KLOW":{nom:"KLOW 80mg",cat:"🩹 Récupération",p1:100,p5:450,p10:770},
   // 👑 Anti-Âge & Vitalité
   "CU50":{nom:"GHK-Cu 50mg",cat:"👑 Anti-Âge & Vitalité",p1:35,p5:155,p10:260},
   "CU100":{nom:"GHK-Cu 100mg",cat:"👑 Anti-Âge & Vitalité",p1:40,p5:180,p10:300},
