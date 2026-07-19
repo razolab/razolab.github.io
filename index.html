@@ -547,7 +547,7 @@ const FREE_SHIP = 150;
 //  Pour changer un code : renomme la clé (ex: "RAZO10" → "RAZO15")
 // ═══════════════════════════════════════════
 const PROMOS = {
-  "RAZO10":  { type:"pct", val:10, label:"-10 %" },
+  "ETE2026": { type:"pct", val:10, label:"-10 %" },
   "FIDELE20":{ type:"eur", val:20, label:"-20 €" },
 };
 let promoActif = null; // { code, type, val, label }
@@ -857,7 +857,10 @@ function confirmOrder(){
   // payload structuré (pour bot Option 1)
   const payload={
     ref, client:o, delivery:'Mondial Relais', payment:'Virement',
-    items:cart, subtotal:subtotal(), shipping:shipping(), total:total(),
+    items:cart, subtotal:subtotal(),
+    promo: promoActif ? {code:promoActif.code, label:promoActif.label} : null,
+    remise: remise(),
+    shipping:shipping(), total:total(),
   };
 
   // ─── Récap texte lisible (pour Option 2 : message pré-rempli) ───
