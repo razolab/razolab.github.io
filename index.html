@@ -135,6 +135,18 @@ input::placeholder{color:var(--txt-faint);}
 .cart-empty{text-align:center;padding:50px 20px;color:var(--txt-faint);}
 .cart-empty-icon{font-size:40px;margin-bottom:12px;opacity:.4;}
 
+/* ── TARIFS GRID ── */
+.tarifs-head-row{display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--green);margin-bottom:4px;}
+.th-prod{flex:1;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--green);}
+.th-price{width:56px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--txt-dim);}
+.tarif-cat{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--cyan);padding:14px 14px 6px;text-transform:uppercase;}
+.tarif-row{display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tarif-row.rupture{opacity:.4;}
+.tarif-name{flex:1;font-size:14px;font-weight:500;}
+.tarif-name .rupt-tag{font-size:10px;color:#ff5566;font-weight:700;margin-left:6px;}
+.tarif-p{width:56px;text-align:right;font-size:13px;font-weight:600;}
+.tarif-p.big{color:var(--green);}
+
 /* ── PROMO ── */
 .promo-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:6px;}
 .promo-row{display:flex;gap:8px;}
@@ -221,6 +233,14 @@ input::placeholder{color:var(--txt-faint);}
         </span>
         <span class="menu-btn-arrow">→</span>
       </button>
+      <button class="menu-btn" onclick="goScreen('tarifs')">
+        <span class="menu-btn-icon">💰</span>
+        <span class="menu-btn-txt">
+          <div class="menu-btn-title">Tarifs</div>
+          <div class="menu-btn-sub">Voir toute la grille de prix</div>
+        </span>
+        <span class="menu-btn-arrow">→</span>
+      </button>
       <button class="menu-btn" onclick="goScreen('sav')">
         <span class="menu-btn-icon">💬</span>
         <span class="menu-btn-txt">
@@ -289,6 +309,23 @@ input::placeholder{color:var(--txt-faint);}
     </div>
 
     <button class="add-btn" id="add-btn" onclick="addToCart()" disabled>Ajouter au panier</button>
+  </div>
+
+  <!-- ══ SCREEN: TARIFS ══ -->
+  <div class="screen" id="screen-tarifs">
+    <div class="sec-head">
+      <span class="sec-title">💰 Grille tarifaire</span>
+      <button class="back-btn" onclick="goScreen('home')">← Retour</button>
+    </div>
+    <div class="tarifs-head-row">
+      <span class="th-prod">Produit</span>
+      <span class="th-price">1 fiole</span>
+      <span class="th-price">×5</span>
+      <span class="th-price">×10</span>
+    </div>
+    <div id="tarifs-list"></div>
+    <div class="promo-line" style="margin-top:16px;">⚡ Port offert dès 150 € · Mondial Relais 10 €</div>
+    <button class="add-btn" style="margin-top:8px;" onclick="goScreen('catalogue')">🧪 Passer commande</button>
   </div>
 
   <!-- ══ SCREEN: CART ══ -->
@@ -399,8 +436,13 @@ input::placeholder{color:var(--txt-faint);}
       <div class="ref-warning-text">Indique impérativement cette référence dans le <strong>motif de ton virement</strong> pour qu'on identifie ta commande :</div>
       <div class="ref-warning-code" id="ref-warning-code"></div>
     </div>
-    <button class="cta-btn full" style="margin-top:8px;" onclick="sendOrderToAdmin()">📩 Envoyer ma commande</button>
-    <div class="step-info" style="margin-top:12px;text-align:center;">Clique ci-dessus pour finaliser : ta commande s'ouvre dans notre messagerie, il te suffit d'appuyer sur <strong>Envoyer</strong>.</div>
+    <!-- Bouton Telegram (si ouvert dans Telegram) -->
+    <button class="cta-btn full" id="btn-send-tg" style="margin-top:8px;display:none;" onclick="sendOrderToAdmin()">📩 Envoyer ma commande</button>
+    <div class="step-info" id="info-send-tg" style="margin-top:12px;text-align:center;display:none;">Clique ci-dessus pour finaliser : ta commande s'ouvre dans notre messagerie, il te suffit d'appuyer sur <strong>Envoyer</strong>.</div>
+
+    <!-- Bouton Copier (si ouvert hors Telegram, ex: Instagram) -->
+    <button class="cta-btn full" id="btn-copy" style="margin-top:8px;display:none;" onclick="copierCommande()">📋 Copier ma commande</button>
+    <div class="step-info" id="info-copy" style="margin-top:12px;text-align:center;display:none;">Clique pour copier ta commande, puis <strong>colle-la dans notre DM Instagram</strong> pour la valider. On te confirme tout de suite après.</div>
   </div>
 
   <!-- ══ SCREEN: SAV ══ -->
@@ -428,6 +470,7 @@ const tg = window.Telegram?.WebApp;
 if(tg){ tg.ready(); tg.expand(); }
 
 const ADMIN_USERNAME = "RAZO_LB"; // ← ton @username Telegram perso (sans @)
+const INSTA_USERNAME = "razo_lb";  // ← ton @username Instagram (sans @)
 
 // ═══════════════════════════════════════════
 //  RIB — À MODIFIER AVEC TES VRAIES COORDONNÉES
@@ -777,7 +820,30 @@ function goScreen(name){
   document.getElementById('screen-'+name).classList.add('active');
   window.scrollTo(0,0);
   if(name==='cart')renderCart();
+  if(name==='tarifs')renderTarifs();
   updateBottomBar();
+}
+
+// Grille tarifaire complète (groupée par catégorie, stock live)
+function renderTarifs(){
+  const box=document.getElementById('tarifs-list');
+  let html='';
+  CATEGORIES.forEach(cat=>{
+    const codes=Object.keys(PRODUCTS).filter(k=>PRODUCTS[k].cat===cat);
+    if(!codes.length) return;
+    html+=`<div class="tarif-cat">${cat}</div>`;
+    codes.forEach(code=>{
+      const p=PRODUCTS[code];
+      const rupt=isRupture(code);
+      html+=`<div class="tarif-row${rupt?' rupture':''}">
+        <span class="tarif-name">${p.nom}${rupt?'<span class="rupt-tag">RUPTURE</span>':''}</span>
+        <span class="tarif-p">${p.p1}€</span>
+        <span class="tarif-p">${p.p5?p.p5+'€':'—'}</span>
+        <span class="tarif-p big">${p.p10?p.p10+'€':'—'}</span>
+      </div>`;
+    });
+  });
+  box.innerHTML=html;
 }
 
 function updateBottomBar(){
@@ -785,7 +851,7 @@ function updateBottomBar(){
   const inner=document.getElementById('bb-inner');
   const active=document.querySelector('.screen.active').id;
   // Home & SAV: hide bar
-  if(active==='screen-home'||active==='screen-sav'||active==='screen-rib'){bar.style.display='none';return;}
+  if(active==='screen-home'||active==='screen-sav'||active==='screen-rib'||active==='screen-tarifs'){bar.style.display='none';return;}
   bar.style.display='block';
 
   if(active==='screen-catalogue'||active==='screen-cart'){
@@ -894,15 +960,27 @@ Adresse : ${o.relay}
   window._recapText = recapText;
   window._orderPayload = payload;
 
-  // Envoi auto au bot si dispo (Option 1)
-  if(tg){
+  // Détecte si on est dans Telegram ou dans un navigateur (Insta, etc.)
+  const dansTelegram = !!(tg && tg.initData !== undefined && tg.initData !== "");
+  if(dansTelegram){
+    document.getElementById('btn-send-tg').style.display='block';
+    document.getElementById('info-send-tg').style.display='block';
+    document.getElementById('btn-copy').style.display='none';
+    document.getElementById('info-copy').style.display='none';
+    // Envoi auto au bot si dispo (Option 1)
     try{ tg.sendData(JSON.stringify(payload)); }catch(e){ console.log(e); }
     if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');
+  } else {
+    // Hors Telegram → bouton Copier
+    document.getElementById('btn-send-tg').style.display='none';
+    document.getElementById('info-send-tg').style.display='none';
+    document.getElementById('btn-copy').style.display='block';
+    document.getElementById('info-copy').style.display='block';
   }
   goScreen('rib');
 }
 
-// Option 2 : ouvre la DM admin avec le récap pré-rempli
+// Option 2 : ouvre la DM admin avec le récap pré-rempli (Telegram)
 function sendOrderToAdmin(){
   const txt = encodeURIComponent(window._recapText || '');
   const url = 'https://t.me/'+ADMIN_USERNAME+'?text='+txt;
@@ -910,9 +988,32 @@ function sendOrderToAdmin(){
   else{ window.open(url,'_blank'); }
 }
 
+// Hors Telegram : copie le récap pour coller en DM Insta
+function copierCommande(){
+  const txt = window._recapText || '';
+  const btn = document.getElementById('btn-copy');
+  function feedbackOK(){
+    btn.textContent = '✅ Commande copiée !';
+    setTimeout(()=>{ btn.textContent='📋 Copier ma commande'; }, 2500);
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(feedbackOK).catch(()=>fallbackCopy(txt,feedbackOK));
+  } else {
+    fallbackCopy(txt,feedbackOK);
+  }
+}
+function fallbackCopy(txt,cb){
+  const ta=document.createElement('textarea');
+  ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try{ document.execCommand('copy'); cb&&cb(); }catch(e){ alert('Copie impossible, sélectionne le texte manuellement.'); }
+  document.body.removeChild(ta);
+}
+
 function contactSAV(){
-  if(tg){ tg.openTelegramLink('https://t.me/'+ADMIN_USERNAME); }
-  else{ window.open('https://t.me/'+ADMIN_USERNAME,'_blank'); }
+  const dansTelegram = !!(tg && tg.initData !== undefined && tg.initData !== "");
+  if(dansTelegram){ tg.openTelegramLink('https://t.me/'+ADMIN_USERNAME); }
+  else{ window.open('https://instagram.com/'+INSTA_USERNAME,'_blank'); }
 }
 
 // ═══════════════════════════════════════════
