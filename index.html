@@ -144,6 +144,7 @@ input::placeholder{color:var(--txt-faint);}
 .tarif-row.rupture{opacity:.4;}
 .tarif-name{flex:1;font-size:14px;font-weight:500;}
 .tarif-name .rupt-tag{font-size:10px;color:#ff5566;font-weight:700;margin-left:6px;}
+.acc-detail{font-size:11px;color:var(--txt-dim);margin-top:3px;font-weight:400;}
 .tarif-p{width:56px;text-align:right;font-size:13px;font-weight:600;}
 .tarif-p.big{color:var(--green);}
 
@@ -842,6 +843,19 @@ function renderTarifs(){
         <span class="tarif-p big">${p.p10?p.p10+'€':'—'}</span>
       </div>`;
     });
+  });
+  // Accessoires (prix unitaire uniquement)
+  html+=`<div class="tarif-cat">💧 Accessoires</div>`;
+  const ACC_DETAIL={
+    "KIT3":"eau bacté 3ml + 10 seringues + 10 tampons",
+    "KIT10":"eau bacté 10ml + 10 seringues + 20 tampons",
+  };
+  ACCESSORIES.forEach(a=>{
+    const det=ACC_DETAIL[a.code];
+    html+=`<div class="tarif-row">
+      <span class="tarif-name">${a.nom}${det?`<div class="acc-detail">${det}</div>`:''}</span>
+      <span class="tarif-p big" style="width:auto;">${a.price.toFixed(2)}€</span>
+    </div>`;
   });
   box.innerHTML=html;
 }
