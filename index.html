@@ -97,6 +97,17 @@ input::placeholder{color:var(--txt-faint);}
 .prod-price-val.green{color:var(--green);}
 
 /* ── ADD BUTTON ── */
+/* ── QUANTITÉ ── */
+.added-toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--green);color:var(--txt);padding:12px 20px;border-radius:30px;font-size:13px;z-index:200;opacity:0;pointer-events:none;transition:all .3s;box-shadow:0 0 20px rgba(157,255,26,.25);white-space:nowrap;}
+.added-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;cursor:pointer;}
+.added-toast strong{color:var(--green);text-decoration:underline;}
+.qty-field{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:12px;}
+.qty-field-label{font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--txt-dim);}
+.qty-selector{display:flex;align-items:center;gap:16px;}
+.qty-big-btn{width:38px;height:38px;border:1px solid var(--green);background:rgba(157,255,26,.1);color:var(--green);border-radius:10px;font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.qty-big-btn:active{transform:scale(.92);}
+.qty-big-num{font-size:20px;font-weight:800;min-width:32px;text-align:center;color:var(--txt);}
+
 .add-btn{
   width:100%;background:linear-gradient(135deg,var(--green),#6fbf10);
   border:none;border-radius:12px;padding:16px;color:#0a0f08;font-size:15px;
@@ -307,6 +318,16 @@ input::placeholder{color:var(--txt-faint);}
         <span class="acc-toggle-icon">▾</span>
       </button>
       <div class="acc-list" id="acc-list"></div>
+    </div>
+
+    <!-- quantité -->
+    <div class="qty-field" id="qty-field" style="display:none;">
+      <span class="qty-field-label">Quantité</span>
+      <div class="qty-selector">
+        <button class="qty-big-btn" onclick="changeQty(-1)">−</button>
+        <span class="qty-big-num" id="qty-big-num">1</span>
+        <button class="qty-big-btn" onclick="changeQty(1)">+</button>
+      </div>
     </div>
 
     <button class="add-btn" id="add-btn" onclick="addToCart()" disabled>Ajouter au panier</button>
@@ -575,8 +596,8 @@ const PRODUCTS = {
 const ACCESSORIES = [
   {code:"KIT3",  nom:"Kit reconstitution 3ml",  price:8},
   {code:"KIT10", nom:"Kit reconstitution 10ml", price:12},
+  {code:"BA3",   nom:"Eau bactériostatique 3ml", price:3.5},
   {code:"BA10",  nom:"Eau bactériostatique 10ml", price:6},
-  {code:"WA10",  nom:"Eau stérile 10ml", price:4.5},
   {code:"SERI1", nom:"Seringues insuline ×10", price:5.5},
   {code:"TAMP",  nom:"Tampons alcool ×20", price:3.5},
 ];
@@ -600,7 +621,7 @@ let promoActif = null; // { code, type, val, label }
 //  STATE
 // ═══════════════════════════════════════════
 let cart = [];
-let currentSel = { cat:"", mol:"", pack:"", acc:{} };
+let currentSel = { cat:"", mol:"", pack:"", qty:1, acc:{} };
 let delivery = "Mondial Relais";
 let payment = "Virement";
 
@@ -632,12 +653,14 @@ function initCatalogue(){
 
 function onCatChange(){
   const cat=document.getElementById('sel-cat').value;
-  currentSel.cat=cat; currentSel.mol=""; currentSel.pack="";
+  currentSel.cat=cat; currentSel.mol=""; currentSel.pack=""; currentSel.qty=1;
   const selMol=document.getElementById('sel-mol');
   selMol.innerHTML='<option value="">— Choisir une molécule —</option>';
   document.getElementById('field-pack').style.display='none';
   document.getElementById('prod-card').classList.remove('show');
   document.getElementById('acc-section').style.display='none';
+  document.getElementById('qty-field').style.display='none';
+  document.getElementById('qty-big-num').textContent='1';
   document.getElementById('add-btn').disabled=true;
   if(!cat){selMol.disabled=true;return;}
   selMol.disabled=false;
@@ -685,9 +708,17 @@ function onMolChange(){
 function onPackChange(){
   const pack=document.getElementById('sel-pack').value;
   currentSel.pack=pack;
+  currentSel.qty=1;
+  document.getElementById('qty-big-num').textContent='1';
+  document.getElementById('qty-field').style.display= pack?'flex':'none';
   document.getElementById('acc-section').style.display= pack?'block':'none';
   // bloque l'ajout si produit en rupture
   document.getElementById('add-btn').disabled=(!pack || isRupture(currentSel.mol));
+}
+
+function changeQty(delta){
+  currentSel.qty=Math.max(1,currentSel.qty+delta);
+  document.getElementById('qty-big-num').textContent=currentSel.qty;
 }
 
 function toggleAcc(){
@@ -716,20 +747,32 @@ function packLabel(pack){return pack==='x1'?'1 fiole':pack==='x5'?'Lot × 5':'Lo
 function packPrice(code,pack){const p=PRODUCTS[code];return pack==='x1'?p.p1:pack==='x5'?p.p5:p.p10;}
 
 function addToCart(){
-  const {mol,pack}=currentSel;
+  const {mol,pack,qty}=currentSel;
   if(!mol||!pack)return;
   if(isRupture(mol)){alert('Ce produit est actuellement en rupture de stock.');return;}
   const p=PRODUCTS[mol];
-  const price=packPrice(mol,pack);
-  cart.push({type:'prod',code:mol,nom:p.nom,pack:packLabel(pack),price:price});
+  const unit=packPrice(mol,pack);
+  const q=Math.max(1,qty);
+  // Fusionne si le même produit+pack est déjà au panier
+  let found=false;
+  for(const it of cart){
+    if(it.type==='prod'&&it.code===mol&&it.pack===packLabel(pack)){
+      it.qty=(it.qty||1)+q;
+      it.price=it.unit*it.qty;
+      found=true;break;
+    }
+  }
+  if(!found){
+    cart.push({type:'prod',code:mol,nom:p.nom,pack:packLabel(pack),unit:unit,qty:q,price:unit*q});
+  }
   // accessories
   ACCESSORIES.forEach(a=>{
-    const q=currentSel.acc[a.code];
-    if(q>0){
+    const qa=currentSel.acc[a.code];
+    if(qa>0){
       for(const it of cart){
-        if(it.type==='acc'&&it.code===a.code){it.qty+=q;it.price+=a.price*q;return;}
+        if(it.type==='acc'&&it.code===a.code){it.qty+=qa;it.price+=a.price*qa;return;}
       }
-      cart.push({type:'acc',code:a.code,nom:a.nom,qty:q,price:a.price*q});
+      cart.push({type:'acc',code:a.code,nom:a.nom,qty:qa,price:a.price*qa});
     }
   });
   // reset selection
@@ -740,7 +783,24 @@ function addToCart(){
   document.getElementById('acc-list').classList.remove('open');
   if(tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
   updateBottomBar();
-  goScreen('cart');
+  showAddedToast();
+}
+
+// Petit message de confirmation après ajout (reste sur le catalogue)
+function showAddedToast(){
+  let t=document.getElementById('added-toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='added-toast';
+    t.className='added-toast';
+    document.body.appendChild(t);
+  }
+  const n=cart.reduce((s,it)=>s+(it.type==='prod'?(it.qty||1):0),0);
+  t.innerHTML=`✅ Ajouté au panier — <strong>voir le panier (${cart.length})</strong>`;
+  t.onclick=()=>goScreen('cart');
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(()=>t.classList.remove('show'),3500);
 }
 
 function delCartItem(i){cart.splice(i,1);renderCart();updateBottomBar();}
@@ -794,7 +854,7 @@ function renderCart(){
     <div class="cart-item">
       <div class="cart-item-info">
         <div class="cart-item-name">${it.nom}</div>
-        <div class="cart-item-detail">${it.type==='prod'?it.pack:'×'+it.qty}</div>
+        <div class="cart-item-detail">${it.type==='prod'?(it.pack+(it.qty>1?' × '+it.qty:'')):'×'+it.qty}</div>
       </div>
       <div class="cart-item-right">
         <span class="cart-item-price">${it.price.toFixed(2)} €</span>
@@ -947,7 +1007,7 @@ function confirmOrder(){
   let lignes='';
   cart.forEach(it=>{
     lignes += it.type==='prod'
-      ? `▸ ${it.nom} (${it.pack}) — ${it.price.toFixed(2)}€\n`
+      ? `▸ ${it.nom} (${it.pack})${it.qty>1?' × '+it.qty:''} — ${it.price.toFixed(2)}€\n`
       : `▸ ${it.nom} ×${it.qty} — ${it.price.toFixed(2)}€\n`;
   });
   const recapText =
