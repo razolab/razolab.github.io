@@ -97,6 +97,8 @@ input::placeholder{color:var(--txt-faint);}
 .prod-price-val.green{color:var(--green);}
 
 /* ── ADD BUTTON ── */
+.pays-note{font-size:11px;color:var(--txt-faint);margin-top:6px;}
+
 /* ── QUANTITÉ ── */
 .added-toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--green);color:var(--txt);padding:12px 20px;border-radius:30px;font-size:13px;z-index:200;opacity:0;pointer-events:none;transition:all .3s;box-shadow:0 0 20px rgba(157,255,26,.25);white-space:nowrap;}
 .added-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;cursor:pointer;}
@@ -131,6 +133,7 @@ input::placeholder{color:var(--txt-faint);}
 .acc-info{flex:1;}
 .acc-name{font-size:14px;font-weight:500;}
 .acc-price{font-size:12px;color:var(--txt-dim);}
+.acc-compo{font-size:11px;color:var(--txt-faint);margin:2px 0 3px;line-height:1.4;}
 .acc-qty{display:flex;align-items:center;gap:8px;}
 .qty-btn{width:26px;height:26px;border:1px solid var(--line);background:var(--card);color:var(--cyan);border-radius:6px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .qty-num{font-size:14px;min-width:20px;text-align:center;}
@@ -140,6 +143,10 @@ input::placeholder{color:var(--txt-faint);}
 .cart-item-info{flex:1;}
 .cart-item-name{font-size:14px;font-weight:600;margin-bottom:2px;}
 .cart-item-detail{font-size:12px;color:var(--txt-dim);}
+.cart-qty-row{display:flex;align-items:center;gap:10px;margin-top:8px;}
+.cart-qty-btn{width:28px;height:28px;border:1px solid var(--line);background:var(--bg2);color:var(--green);border-radius:8px;font-size:17px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.cart-qty-btn:active{transform:scale(.9);border-color:var(--green);}
+.cart-qty-num{font-size:14px;font-weight:700;min-width:22px;text-align:center;}
 .cart-item-right{display:flex;align-items:center;gap:12px;}
 .cart-item-price{font-size:15px;font-weight:700;color:var(--green);}
 .cart-del{color:#ff5566;font-size:18px;cursor:pointer;background:none;border:none;}
@@ -312,9 +319,9 @@ input::placeholder{color:var(--txt-faint);}
     </div>
 
     <!-- accessories -->
-    <div class="acc-section" id="acc-section" style="display:none;">
+    <div class="acc-section" id="acc-section">
       <button class="acc-toggle" id="acc-toggle" onclick="toggleAcc()">
-        <span class="acc-toggle-label">➕ Ajouter des accessoires (optionnel)</span>
+        <span class="acc-toggle-label">💧 Accessoires <span style="font-weight:400;opacity:.6;font-size:12px;">(seuls ou en complément)</span></span>
         <span class="acc-toggle-icon">▾</span>
       </button>
       <div class="acc-list" id="acc-list"></div>
@@ -381,7 +388,7 @@ input::placeholder{color:var(--txt-faint);}
       <span class="sec-title">🚚 Livraison</span>
       <button class="back-btn" onclick="goScreen('cart')">← Panier</button>
     </div>
-    <div class="step-info">Livraison en <strong>Mondial Relais</strong> — <strong>10 €</strong>, offerte dès 150 € d'achat.</div>
+    <div class="step-info" id="info-port">Livraison en <strong>Mondial Relais</strong> — <strong>10 €</strong> vers France, offerte dès 150 € d'achat.</div>
     <div class="opt-card selected" onclick="selectDelivery(this)">
       <div class="opt-radio"></div>
       <span class="opt-icon">📦</span>
@@ -391,6 +398,24 @@ input::placeholder{color:var(--txt-faint);}
       </div>
     </div>
     <div class="field" style="margin-top:20px;">
+      <label class="field-label">Pays de livraison</label>
+      <div class="select-wrap">
+        <select id="in-pays" onchange="onPaysChange()">
+          <option value="France">🇫🇷 France</option>
+          <option value="Allemagne">🇩🇪 Allemagne</option>
+          <option value="Autriche">🇦🇹 Autriche</option>
+          <option value="Belgique">🇧🇪 Belgique</option>
+          <option value="Espagne">🇪🇸 Espagne</option>
+          <option value="Italie">🇮🇹 Italie</option>
+          <option value="Luxembourg">🇱🇺 Luxembourg</option>
+          <option value="Pays-Bas">🇳🇱 Pays-Bas</option>
+          <option value="Pologne">🇵🇱 Pologne</option>
+          <option value="Portugal">🇵🇹 Portugal</option>
+        </select>
+      </div>
+      <div class="pays-note">Nous livrons uniquement dans ces pays.</div>
+    </div>
+    <div class="field">
       <label class="field-label">Nom complet</label>
       <input type="text" id="in-name" placeholder="Prénom et nom">
     </div>
@@ -602,7 +627,18 @@ const ACCESSORIES = [
   {code:"TAMP",  nom:"Tampons alcool ×20", price:3.5},
 ];
 
+// Composition détaillée des kits (affichée sous le nom)
+const ACC_DETAIL = {
+  "KIT3":"eau bacté 3ml + 10 seringues + 10 tampons",
+  "KIT10":"eau bacté 10ml + 10 seringues + 20 tampons",
+};
+
 const SHIPPING = 10;
+// Frais de port par pays (défaut 10 €)
+const SHIPPING_PAYS = {
+  "Allemagne": 15,
+};
+let paysLivraison = "France";
 const FREE_SHIP = 150;
 
 // ═══════════════════════════════════════════
@@ -641,7 +677,7 @@ function initCatalogue(){
     row.className='acc-item';
     row.innerHTML=`
       <div class="acc-check" id="chk-${a.code}" onclick="toggleAccItem('${a.code}')"></div>
-      <div class="acc-info"><div class="acc-name">${a.nom}</div><div class="acc-price">${a.price.toFixed(2)} €</div></div>
+      <div class="acc-info"><div class="acc-name">${a.nom}</div>${ACC_DETAIL[a.code]?`<div class="acc-compo">${ACC_DETAIL[a.code]}</div>`:''}<div class="acc-price">${a.price.toFixed(2)} €</div></div>
       <div class="acc-qty">
         <button class="qty-btn" onclick="accQty('${a.code}',-1)">−</button>
         <span class="qty-num" id="qty-${a.code}">0</span>
@@ -658,10 +694,9 @@ function onCatChange(){
   selMol.innerHTML='<option value="">— Choisir une molécule —</option>';
   document.getElementById('field-pack').style.display='none';
   document.getElementById('prod-card').classList.remove('show');
-  document.getElementById('acc-section').style.display='none';
   document.getElementById('qty-field').style.display='none';
   document.getElementById('qty-big-num').textContent='1';
-  document.getElementById('add-btn').disabled=true;
+  majBoutonAjout();
   if(!cat){selMol.disabled=true;return;}
   selMol.disabled=false;
   Object.keys(PRODUCTS).filter(k=>PRODUCTS[k].cat===cat).forEach(code=>{
@@ -682,8 +717,7 @@ function onMolChange(){
   const fieldPack=document.getElementById('field-pack');
   const selPack=document.getElementById('sel-pack');
   document.getElementById('prod-card').classList.remove('show');
-  document.getElementById('acc-section').style.display='none';
-  document.getElementById('add-btn').disabled=true;
+  majBoutonAjout();
   if(!code){fieldPack.style.display='none';return;}
   const p=PRODUCTS[code];
   selPack.innerHTML='<option value="">— Choisir un format —</option>';
@@ -711,9 +745,8 @@ function onPackChange(){
   currentSel.qty=1;
   document.getElementById('qty-big-num').textContent='1';
   document.getElementById('qty-field').style.display= pack?'flex':'none';
-  document.getElementById('acc-section').style.display= pack?'block':'none';
   // bloque l'ajout si produit en rupture
-  document.getElementById('add-btn').disabled=(!pack || isRupture(currentSel.mol));
+  majBoutonAjout();
 }
 
 function changeQty(delta){
@@ -738,6 +771,21 @@ function refreshAcc(code){
   const q=currentSel.acc[code];
   document.getElementById('qty-'+code).textContent=q;
   document.getElementById('chk-'+code).classList.toggle('checked',q>0);
+  majBoutonAjout();
+}
+
+// Y a-t-il au moins un accessoire sélectionné ?
+function aDesAccessoires(){
+  return ACCESSORIES.some(a=>currentSel.acc[a.code]>0);
+}
+
+// Le bouton s'active si molécule+pack OU accessoires seuls
+function majBoutonAjout(){
+  const btn=document.getElementById('add-btn');
+  const molOk = currentSel.mol && currentSel.pack && !isRupture(currentSel.mol);
+  const accOk = aDesAccessoires();
+  btn.disabled = !(molOk || accOk);
+  btn.textContent = (!molOk && accOk) ? 'Ajouter les accessoires' : 'Ajouter au panier';
 }
 
 // ═══════════════════════════════════════════
@@ -748,22 +796,25 @@ function packPrice(code,pack){const p=PRODUCTS[code];return pack==='x1'?p.p1:pac
 
 function addToCart(){
   const {mol,pack,qty}=currentSel;
-  if(!mol||!pack)return;
-  if(isRupture(mol)){alert('Ce produit est actuellement en rupture de stock.');return;}
-  const p=PRODUCTS[mol];
-  const unit=packPrice(mol,pack);
-  const q=Math.max(1,qty);
-  // Fusionne si le même produit+pack est déjà au panier
-  let found=false;
-  for(const it of cart){
-    if(it.type==='prod'&&it.code===mol&&it.pack===packLabel(pack)){
-      it.qty=(it.qty||1)+q;
-      it.price=it.unit*it.qty;
-      found=true;break;
+  const molOk = mol && pack;
+  if(!molOk && !aDesAccessoires()) return;
+  if(molOk && isRupture(mol)){alert('Ce produit est actuellement en rupture de stock.');return;}
+  if(molOk){
+    const p=PRODUCTS[mol];
+    const unit=packPrice(mol,pack);
+    const q=Math.max(1,qty);
+    // Fusionne si le même produit+pack est déjà au panier
+    let found=false;
+    for(const it of cart){
+      if(it.type==='prod'&&it.code===mol&&it.pack===packLabel(pack)){
+        it.qty=(it.qty||1)+q;
+        it.price=it.unit*it.qty;
+        found=true;break;
+      }
     }
-  }
-  if(!found){
-    cart.push({type:'prod',code:mol,nom:p.nom,pack:packLabel(pack),unit:unit,qty:q,price:unit*q});
+    if(!found){
+      cart.push({type:'prod',code:mol,nom:p.nom,pack:packLabel(pack),unit:unit,qty:q,price:unit*q});
+    }
   }
   // accessories
   ACCESSORIES.forEach(a=>{
@@ -772,7 +823,7 @@ function addToCart(){
       for(const it of cart){
         if(it.type==='acc'&&it.code===a.code){it.qty+=qa;it.price+=a.price*qa;return;}
       }
-      cart.push({type:'acc',code:a.code,nom:a.nom,qty:qa,price:a.price*qa});
+      cart.push({type:'acc',code:a.code,nom:a.nom,unit:a.price,qty:qa,price:a.price*qa});
     }
   });
   // reset selection
@@ -805,6 +856,22 @@ function showAddedToast(){
 
 function delCartItem(i){cart.splice(i,1);renderCart();updateBottomBar();}
 
+// Ajuste la quantité d'une ligne du panier (supprime si 0)
+function cartQty(i,delta){
+  const it=cart[i];
+  if(!it)return;
+  const q=(it.qty||1)+delta;
+  if(q<=0){ cart.splice(i,1); }
+  else{
+    it.qty=q;
+    const unit = it.unit || (it.price/(it.qty-delta||1));
+    it.unit=unit;
+    it.price=unit*q;
+  }
+  if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+  renderCart(); updateBottomBar();
+}
+
 function subtotal(){return cart.reduce((s,it)=>s+it.price,0);}
 
 // Montant de la remise (0 si aucun code)
@@ -816,7 +883,8 @@ function remise(){
 }
 // Sous-total après remise (sert de base au port offert)
 function sousTotalRemise(){return subtotal()-remise();}
-function shipping(){return sousTotalRemise()>=FREE_SHIP?0:(cart.length?SHIPPING:0);}
+function fraisPort(){return SHIPPING_PAYS[paysLivraison] || SHIPPING;}
+function shipping(){return sousTotalRemise()>=FREE_SHIP?0:(cart.length?fraisPort():0);}
 function total(){return sousTotalRemise()+shipping();}
 
 // Applique le code saisi
@@ -854,7 +922,12 @@ function renderCart(){
     <div class="cart-item">
       <div class="cart-item-info">
         <div class="cart-item-name">${it.nom}</div>
-        <div class="cart-item-detail">${it.type==='prod'?(it.pack+(it.qty>1?' × '+it.qty:'')):'×'+it.qty}</div>
+        <div class="cart-item-detail">${it.type==='prod'?it.pack:'unité'} · ${it.unit?it.unit.toFixed(2)+' € pièce':''}</div>
+        <div class="cart-qty-row">
+          <button class="cart-qty-btn" onclick="cartQty(${i},-1)">−</button>
+          <span class="cart-qty-num">${it.qty||1}</span>
+          <button class="cart-qty-btn" onclick="cartQty(${i},1)">+</button>
+        </div>
       </div>
       <div class="cart-item-right">
         <span class="cart-item-price">${it.price.toFixed(2)} €</span>
@@ -906,10 +979,6 @@ function renderTarifs(){
   });
   // Accessoires (prix unitaire uniquement)
   html+=`<div class="tarif-cat">💧 Accessoires</div>`;
-  const ACC_DETAIL={
-    "KIT3":"eau bacté 3ml + 10 seringues + 10 tampons",
-    "KIT10":"eau bacté 10ml + 10 seringues + 20 tampons",
-  };
   ACCESSORIES.forEach(a=>{
     const det=ACC_DETAIL[a.code];
     html+=`<div class="tarif-row">
@@ -962,6 +1031,16 @@ function updateBottomBar(){
 //  DELIVERY / PAYMENT
 // ═══════════════════════════════════════════
 function selectDelivery(el){document.querySelectorAll('#screen-delivery .opt-card').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
+
+// Change de pays → recalcule les frais de port
+function onPaysChange(){
+  paysLivraison = document.getElementById('in-pays').value;
+  const info=document.getElementById('info-port');
+  if(info){
+    info.innerHTML = `Livraison en <strong>Mondial Relais</strong> — <strong>${fraisPort()} €</strong> vers ${paysLivraison}, offerte dès ${FREE_SHIP} € d'achat.`;
+  }
+  updateBottomBar();
+}
 function selectPayment(el,method){
   if(method!=='Virement')return;
   document.querySelectorAll('#screen-payment .opt-card').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');payment=method;
@@ -971,11 +1050,12 @@ function validateDelivery(){
   const email=document.getElementById('in-email').value.trim();
   const phone=document.getElementById('in-phone').value.trim();
   const relay=document.getElementById('in-relay').value.trim();
+  const pays=document.getElementById('in-pays').value;
   if(!name||!email||!phone||!relay){
     if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred('error');
     alert('Merci de remplir tous les champs de livraison.');return;
   }
-  window._order={name,email,phone,relay};
+  window._order={name,email,phone,relay,pays};
   goScreen('payment');
 }
 
@@ -1023,6 +1103,7 @@ Nom : ${o.name}
 Email : ${o.email}
 Tél : ${o.phone}
 Adresse : ${o.relay}
+Pays : ${o.pays || 'France'}
 
 🚚 Livraison : Mondial Relais
 💳 Paiement : Virement${promoActif ? '\n🎟️ Code promo : '+promoActif.code+' ('+promoActif.label+') → −'+remise().toFixed(2)+'€' : ''}
