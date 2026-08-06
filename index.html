@@ -98,6 +98,9 @@ input::placeholder{color:var(--txt-faint);}
 
 /* ── ADD BUTTON ── */
 .pays-note{font-size:11px;color:var(--txt-faint);margin-top:6px;}
+.parrain-box{background:var(--card);border:1px dashed var(--green);border-radius:12px;padding:14px 16px;margin-top:16px;}
+.parrain-title{font-size:13px;font-weight:700;color:var(--green);margin-bottom:12px;}
+.merci-qty-row{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
 
 /* ── QUANTITÉ ── */
 .added-toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--green);color:var(--txt);padding:12px 20px;border-radius:30px;font-size:13px;z-index:200;opacity:0;pointer-events:none;transition:all .3s;box-shadow:0 0 20px rgba(157,255,26,.25);white-space:nowrap;}
@@ -274,7 +277,7 @@ input::placeholder{color:var(--txt-faint);}
       <span class="hbadge c">COA Janoshik</span>
       <span class="hbadge c">Envoi discret</span>
     </div>
-    <div class="promo-line">⚡ Port offert dès 150 € · Mondial Relais 10 €</div>
+    <div class="promo-line">⚡ Port offert dès 150 € · Relais dès 10 €</div>
   </div>
 
   <!-- ══ SCREEN: CATALOGUE ══ -->
@@ -353,7 +356,7 @@ input::placeholder{color:var(--txt-faint);}
       <span class="th-price">×10</span>
     </div>
     <div id="tarifs-list"></div>
-    <div class="promo-line" style="margin-top:16px;">⚡ Port offert dès 150 € · Mondial Relais 10 €</div>
+    <div class="promo-line" style="margin-top:16px;">⚡ Port offert dès 150 € · Relais dès 10 €</div>
     <button class="add-btn" style="margin-top:8px;" onclick="goScreen('catalogue')">🧪 Passer commande</button>
   </div>
 
@@ -377,6 +380,7 @@ input::placeholder{color:var(--txt-faint);}
     <div class="summary" id="cart-summary" style="display:none;">
       <div class="sum-row"><span class="sum-label">Sous-total</span><span class="sum-val" id="sum-subtotal"></span></div>
       <div class="sum-row" id="sum-remise-row" style="display:none;"><span class="sum-label" id="sum-remise-label">Remise</span><span class="sum-val green" id="sum-remise"></span></div>
+      <div class="sum-row" id="sum-bonus-row" style="display:none;"><span class="sum-label" id="sum-bonus-label">Bonus</span><span class="sum-val green" id="sum-bonus"></span></div>
       <div class="sum-row"><span class="sum-label">Livraison</span><span class="sum-val" id="sum-shipping"></span></div>
       <div class="sum-row total"><span>Total</span><span class="sum-val green" id="sum-total"></span></div>
     </div>
@@ -388,22 +392,14 @@ input::placeholder{color:var(--txt-faint);}
       <span class="sec-title">🚚 Livraison</span>
       <button class="back-btn" onclick="goScreen('cart')">← Panier</button>
     </div>
-    <div class="step-info" id="info-port">Livraison en <strong>Mondial Relais</strong> — <strong>10 €</strong> vers France, offerte dès 150 € d'achat.</div>
-    <div class="opt-card selected" onclick="selectDelivery(this)">
-      <div class="opt-radio"></div>
-      <span class="opt-icon">📦</span>
-      <div class="opt-info">
-        <div class="opt-name">Mondial Relais</div>
-        <div class="opt-desc">Point relais · Envoi discret & suivi</div>
-      </div>
-    </div>
-    <div class="field" style="margin-top:20px;">
+    <div class="step-info" id="info-port">Choisis ton pays pour voir les options de livraison disponibles.</div>
+
+    <div class="field">
       <label class="field-label">Pays de livraison</label>
       <div class="select-wrap">
         <select id="in-pays" onchange="onPaysChange()">
           <option value="France">🇫🇷 France</option>
           <option value="Allemagne">🇩🇪 Allemagne</option>
-          <option value="Autriche">🇦🇹 Autriche</option>
           <option value="Belgique">🇧🇪 Belgique</option>
           <option value="Espagne">🇪🇸 Espagne</option>
           <option value="Italie">🇮🇹 Italie</option>
@@ -414,6 +410,10 @@ input::placeholder{color:var(--txt-faint);}
         </select>
       </div>
       <div class="pays-note">Nous livrons uniquement dans ces pays.</div>
+    </div>
+
+    <div id="modes-livraison"></div>
+
     </div>
     <div class="field">
       <label class="field-label">Nom complet</label>
@@ -430,6 +430,35 @@ input::placeholder{color:var(--txt-faint);}
     <div class="field">
       <label class="field-label">Adresse</label>
       <input type="text" id="in-relay" placeholder="Rue, code postal, ville">
+    </div>
+
+    <div class="parrain-box">
+      <div class="parrain-title">🎁 Tu as été parrainé ?</div>
+      <div class="field" style="margin-bottom:10px;">
+        <label class="field-label">Pseudo du parrain</label>
+        <input type="text" id="in-parrain" placeholder="Ex : @jean_razo">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label class="field-label">Code parrainage</label>
+        <input type="text" id="in-code-parrain" placeholder="PARRAINAGE10" autocapitalize="characters">
+      </div>
+    </div>
+
+    <div class="parrain-box">
+      <div class="parrain-title">⭐ Toi-même parrain ? Récupère ta récompense</div>
+      <div class="field" style="margin-bottom:10px;">
+        <label class="field-label">Code récompense</label>
+        <input type="text" id="in-code-merci" placeholder="MERCI10" autocapitalize="characters">
+      </div>
+      <div class="merci-qty-row">
+        <span class="qty-field-label">Nombre de filleuls à valoriser</span>
+        <div class="qty-selector">
+          <button class="qty-big-btn" onclick="changeMerciQty(-1)">−</button>
+          <span class="qty-big-num" id="merci-qty-num">1</span>
+          <button class="qty-big-btn" onclick="changeMerciQty(1)">+</button>
+        </div>
+      </div>
+      <div class="pays-note">1 filleul validé = 10 € de bonus. Confirmé par nos soins avant validation.</div>
     </div>
   </div>
 
@@ -458,6 +487,7 @@ input::placeholder{color:var(--txt-faint);}
     <div class="summary" style="margin-top:20px;">
       <div class="sum-row"><span class="sum-label">Sous-total</span><span class="sum-val" id="pay-subtotal"></span></div>
       <div class="sum-row" id="pay-remise-row" style="display:none;"><span class="sum-label" id="pay-remise-label">Remise</span><span class="sum-val green" id="pay-remise"></span></div>
+      <div class="sum-row" id="pay-bonus-row" style="display:none;"><span class="sum-label" id="pay-bonus-label">Bonus</span><span class="sum-val green" id="pay-bonus"></span></div>
       <div class="sum-row"><span class="sum-label">Livraison</span><span class="sum-val" id="pay-shipping"></span></div>
       <div class="sum-row total"><span>Total à régler</span><span class="sum-val green" id="pay-total"></span></div>
     </div>
@@ -633,12 +663,23 @@ const ACC_DETAIL = {
   "KIT10":"eau bacté 10ml + 10 seringues + 20 tampons",
 };
 
-const SHIPPING = 10;
-// Frais de port par pays (défaut 10 €)
-const SHIPPING_PAYS = {
-  "Allemagne": 15,
+const SHIPPING_RELAIS = 10;    // Point relais / Locker — même tarif partout
+const SHIPPING_DOMICILE = 12.5; // Livraison à domicile — même tarif partout
+
+// Modes disponibles par pays : "relais", "domicile", ou les deux
+const MODES_PAYS = {
+  "France":     ["relais","domicile"],
+  "Allemagne":  ["domicile"],           // pas de relais en Allemagne
+  "Belgique":   ["relais"],
+  "Espagne":    ["relais"],
+  "Italie":     ["relais"],             // locker = relais
+  "Luxembourg": ["relais"],             // locker = relais
+  "Pays-Bas":   ["relais"],
+  "Pologne":    ["relais"],
+  "Portugal":   ["relais"],             // relais/locker
 };
 let paysLivraison = "France";
+let modeLivraison = "relais"; // "relais" ou "domicile"
 const FREE_SHIP = 150;
 
 // ═══════════════════════════════════════════
@@ -648,10 +689,22 @@ const FREE_SHIP = 150;
 //  Pour changer un code : renomme la clé (ex: "RAZO10" → "RAZO15")
 // ═══════════════════════════════════════════
 const PROMOS = {
-  "ETE2026": { type:"pct", val:10, label:"-10 %" },
-  "FIDELE20":{ type:"eur", val:20, label:"-20 €" },
+  "ETE2026":     { type:"pct", val:10, label:"-10 %" },
+  "FIDELE20":    { type:"eur", val:20, label:"-20 €" },
 };
-let promoActif = null; // { code, type, val, label }
+let promoActif = null; // { code, type, val, label } — 1 seul actif, saisi dans le panier
+
+// Code filleul (parrainé) — toujours cumulable avec le code panier, 1 seul usage
+const PROMOS_BONUS = {
+  "PARRAINAGE10":{ type:"pct", val:10, label:"-10 % (parrainage)" },
+};
+let bonusActif = null; // { code, type, val, label } — saisi sur l'écran livraison
+
+// Code récompense PARRAIN — cumulable avec le code panier, valeur × nombre de filleuls
+const MERCI_CODE = "MERCI10";
+const MERCI_VAL = 10; // € par filleul validé
+let merciActif = false;   // le code a été saisi et est valide
+let merciQty = 1;         // nombre de filleuls valorisés (1 à 10)
 
 // ═══════════════════════════════════════════
 //  STATE
@@ -752,6 +805,12 @@ function onPackChange(){
 function changeQty(delta){
   currentSel.qty=Math.max(1,currentSel.qty+delta);
   document.getElementById('qty-big-num').textContent=currentSel.qty;
+}
+
+// Ajuste le nombre de filleuls valorisés (1 à 10) pour la récompense parrain
+function changeMerciQty(delta){
+  merciQty=Math.max(1,Math.min(10,merciQty+delta));
+  document.getElementById('merci-qty-num').textContent=merciQty;
 }
 
 function toggleAcc(){
@@ -874,16 +933,36 @@ function cartQty(i,delta){
 
 function subtotal(){return cart.reduce((s,it)=>s+it.price,0);}
 
-// Montant de la remise (0 si aucun code)
-function remise(){
+// Remise du code panier (ETE2026 / FIDELE20) seule
+function remisePanier(){
   if(!promoActif) return 0;
   var st = subtotal();
   var r = promoActif.type==="pct" ? st*promoActif.val/100 : promoActif.val;
-  return Math.min(r, st); // jamais plus que le sous-total
+  return Math.min(r, st);
+}
+// Remise du code bonus/parrainage (filleul + récompense parrain), cumulable avec le panier
+function remiseBonus(){
+  var st = subtotal();
+  var r = 0;
+  if(bonusActif){ r += bonusActif.type==="pct" ? st*bonusActif.val/100 : bonusActif.val; }
+  if(merciActif){ r += MERCI_VAL * merciQty; }
+  return Math.min(r, st);
+}
+// Construit le libellé de la ligne Bonus selon ce qui est actif
+function libelleBonus(){
+  const parts=[];
+  if(bonusActif) parts.push(bonusActif.code);
+  if(merciActif) parts.push(MERCI_CODE+' ×'+merciQty);
+  return parts.join(' + ');
+}
+// Remise totale = panier + bonus, plafonnée au sous-total (jamais négatif)
+function remise(){
+  var st = subtotal();
+  return Math.min(remisePanier() + remiseBonus(), st);
 }
 // Sous-total après remise (sert de base au port offert)
 function sousTotalRemise(){return subtotal()-remise();}
-function fraisPort(){return SHIPPING_PAYS[paysLivraison] || SHIPPING;}
+function fraisPort(){return modeLivraison==='domicile' ? SHIPPING_DOMICILE : SHIPPING_RELAIS;}
 function shipping(){return sousTotalRemise()>=FREE_SHIP?0:(cart.length?fraisPort():0);}
 function total(){return sousTotalRemise()+shipping();}
 
@@ -936,11 +1015,17 @@ function renderCart(){
     </div>`).join('');
   document.getElementById('sum-subtotal').textContent=subtotal().toFixed(2)+' €';
   const rRow=document.getElementById('sum-remise-row');
-  if(remise()>0){
+  if(remisePanier()>0){
     rRow.style.display='flex';
     document.getElementById('sum-remise-label').textContent='Remise ('+promoActif.code+')';
-    document.getElementById('sum-remise').textContent='− '+remise().toFixed(2)+' €';
+    document.getElementById('sum-remise').textContent='− '+remisePanier().toFixed(2)+' €';
   } else { rRow.style.display='none'; }
+  const bRow=document.getElementById('sum-bonus-row');
+  if(remiseBonus()>0){
+    bRow.style.display='flex';
+    document.getElementById('sum-bonus-label').textContent='Bonus ('+libelleBonus()+')';
+    document.getElementById('sum-bonus').textContent='− '+remiseBonus().toFixed(2)+' €';
+  } else { bRow.style.display='none'; }
   document.getElementById('sum-shipping').textContent=shipping()===0?'OFFERTE ✅':shipping().toFixed(2)+' €';
   document.getElementById('sum-total').textContent=total().toFixed(2)+' €';
   sum.style.display='block';
@@ -955,6 +1040,7 @@ function goScreen(name){
   window.scrollTo(0,0);
   if(name==='cart')renderCart();
   if(name==='tarifs')renderTarifs();
+  if(name==='delivery')onPaysChange();
   updateBottomBar();
 }
 
@@ -1016,11 +1102,17 @@ function updateBottomBar(){
   else if(active==='screen-payment'){
     document.getElementById('pay-subtotal').textContent=subtotal().toFixed(2)+' €';
     const payR=document.getElementById('pay-remise-row');
-    if(remise()>0){
+    if(remisePanier()>0){
       payR.style.display='flex';
       document.getElementById('pay-remise-label').textContent='Remise ('+promoActif.code+')';
-      document.getElementById('pay-remise').textContent='− '+remise().toFixed(2)+' €';
+      document.getElementById('pay-remise').textContent='− '+remisePanier().toFixed(2)+' €';
     } else { payR.style.display='none'; }
+    const payB=document.getElementById('pay-bonus-row');
+    if(remiseBonus()>0){
+      payB.style.display='flex';
+      document.getElementById('pay-bonus-label').textContent='Bonus ('+libelleBonus()+')';
+      document.getElementById('pay-bonus').textContent='− '+remiseBonus().toFixed(2)+' €';
+    } else { payB.style.display='none'; }
     document.getElementById('pay-shipping').textContent=shipping()===0?'OFFERTE ✅':shipping().toFixed(2)+' €';
     document.getElementById('pay-total').textContent=total().toFixed(2)+' €';
     inner.innerHTML=`<button class="cta-btn full" onclick="confirmOrder()">Valider la commande →</button>`;
@@ -1030,15 +1122,42 @@ function updateBottomBar(){
 // ═══════════════════════════════════════════
 //  DELIVERY / PAYMENT
 // ═══════════════════════════════════════════
-function selectDelivery(el){document.querySelectorAll('#screen-delivery .opt-card').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
 
 // Change de pays → recalcule les frais de port
 function onPaysChange(){
   paysLivraison = document.getElementById('in-pays').value;
+  const modes = MODES_PAYS[paysLivraison] || ["relais"];
+  // Si le mode actuellement sélectionné n'existe plus pour ce pays, bascule sur le premier dispo
+  if(!modes.includes(modeLivraison)) modeLivraison = modes[0];
+
+  const box=document.getElementById('modes-livraison');
+  const labelMode = {
+    relais:{icon:'📦',nom:'Point Relais / Locker',desc:'Retrait en point relais · Envoi discret & suivi',prix:SHIPPING_RELAIS},
+    domicile:{icon:'🏠',nom:'Livraison à domicile',desc:'Remise directe chez toi · Envoi discret & suivi',prix:SHIPPING_DOMICILE},
+  };
+  box.innerHTML = modes.map(m=>{
+    const info=labelMode[m];
+    const sel = m===modeLivraison ? ' selected' : '';
+    return `<div class="opt-card${sel}" onclick="selectMode('${m}',this)">
+      <div class="opt-radio"></div>
+      <span class="opt-icon">${info.icon}</span>
+      <div class="opt-info">
+        <div class="opt-name">${info.nom} — ${info.prix.toFixed(2)} €</div>
+        <div class="opt-desc">${info.desc}</div>
+      </div>
+    </div>`;
+  }).join('');
+
   const info=document.getElementById('info-port');
   if(info){
-    info.innerHTML = `Livraison en <strong>Mondial Relais</strong> — <strong>${fraisPort()} €</strong> vers ${paysLivraison}, offerte dès ${FREE_SHIP} € d'achat.`;
+    info.innerHTML = `Livraison vers <strong>${paysLivraison}</strong> — offerte dès ${FREE_SHIP} € d'achat.`;
   }
+  updateBottomBar();
+}
+function selectMode(m,el){
+  modeLivraison=m;
+  document.querySelectorAll('#modes-livraison .opt-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
   updateBottomBar();
 }
 function selectPayment(el,method){
@@ -1051,11 +1170,22 @@ function validateDelivery(){
   const phone=document.getElementById('in-phone').value.trim();
   const relay=document.getElementById('in-relay').value.trim();
   const pays=document.getElementById('in-pays').value;
+  const parrainPseudo=document.getElementById('in-parrain').value.trim();
+  const parrainCode=document.getElementById('in-code-parrain').value.trim().toUpperCase();
+  const merciCode=document.getElementById('in-code-merci').value.trim().toUpperCase();
   if(!name||!email||!phone||!relay){
     if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred('error');
     alert('Merci de remplir tous les champs de livraison.');return;
   }
-  window._order={name,email,phone,relay,pays};
+  window._order={name,email,phone,relay,pays,parrainPseudo,parrainCode,merciCode,merciQty};
+  // Code filleul (PARRAINAGE10) — cumulable avec le code panier
+  if(parrainCode && PROMOS_BONUS[parrainCode]){
+    bonusActif = Object.assign({code:parrainCode}, PROMOS_BONUS[parrainCode]);
+  }
+  // Code récompense parrain (MERCI10) — valeur × nombre de filleuls
+  if(merciCode === MERCI_CODE){
+    merciActif = true;
+  }
   goScreen('payment');
 }
 
@@ -1076,9 +1206,10 @@ function confirmOrder(){
 
   // payload structuré (pour bot Option 1)
   const payload={
-    ref, client:o, delivery:'Mondial Relais', payment:'Virement',
+    ref, client:o, delivery:(modeLivraison==='domicile'?'Domicile':'Point Relais / Locker'), pays:paysLivraison, payment:'Virement',
     items:cart, subtotal:subtotal(),
     promo: promoActif ? {code:promoActif.code, label:promoActif.label} : null,
+    bonus: bonusActif ? {code:bonusActif.code, label:bonusActif.label} : null,
     remise: remise(),
     shipping:shipping(), total:total(),
   };
@@ -1104,9 +1235,9 @@ Email : ${o.email}
 Tél : ${o.phone}
 Adresse : ${o.relay}
 Pays : ${o.pays || 'France'}
-
-🚚 Livraison : Mondial Relais
-💳 Paiement : Virement${promoActif ? '\n🎟️ Code promo : '+promoActif.code+' ('+promoActif.label+') → −'+remise().toFixed(2)+'€' : ''}
+${o.parrainPseudo ? '🎁 Parrainé par : '+o.parrainPseudo+'\n' : ''}
+🚚 Livraison : ${modeLivraison==='domicile'?'Domicile':'Point Relais / Locker'} (${paysLivraison})
+💳 Paiement : Virement${promoActif ? '\n🎟️ Code promo : '+promoActif.code+' ('+promoActif.label+') → −'+remisePanier().toFixed(2)+'€' : ''}${bonusActif ? '\n🎁 Code parrainage : '+bonusActif.code+' → −'+((bonusActif.type==='pct'?subtotal()*bonusActif.val/100:bonusActif.val)).toFixed(2)+'€' : ''}${merciActif ? '\n⭐ Récompense parrain : '+MERCI_CODE+' ×'+merciQty+' filleul(s) → −'+(MERCI_VAL*merciQty).toFixed(2)+'€' : ''}
 💰 TOTAL : ${total().toFixed(2)}€
 
 ━━━━━━━━━━━━━━━
