@@ -1230,6 +1230,7 @@ function confirmOrder(){
     items:cart, subtotal:subtotal(),
     promo: promoActif ? {code:promoActif.code, label:promoActif.label} : null,
     bonus: bonusActif ? {code:bonusActif.code, label:bonusActif.label} : null,
+    merci: merciActif ? {qty:merciQty} : null,
     remisePanier: remisePanier(),
     remiseBonus: remiseBonus(),
     remise: remise(),
