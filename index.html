@@ -549,6 +549,27 @@ const ADMIN_USERNAME = "RAZO_LB"; // ← ton @username Telegram perso (sans @)
 const INSTA_USERNAME = "razo_lb";  // ← ton @username Instagram (sans @)
 
 // ═══════════════════════════════════════════
+//  📋 ENREGISTREMENT AUTO DES COMMANDES
+//  Colle ici l'URL de ton Web App Apps Script (après déploiement)
+//  Doit matcher exactement CLE_SECRETE dans le script Google Sheet
+// ═══════════════════════════════════════════
+const COMMANDES_URL = "https://script.google.com/macros/s/AKfycbyEPbTh6y21aLmM6HRTK9hVHR-CW8dd30HXdkiuhKmoqz4cUuAER-yYINaW3Dzumoa9/exec";
+const COMMANDES_CLE = "razolab-2026-secure";
+
+// Envoie la commande vers le Google Sheet (silencieux, ne bloque jamais le client)
+function enregistrerCommande(payload){
+  if(!COMMANDES_URL || COMMANDES_URL.includes("COLLE_ICI")) return;
+  try{
+    fetch(COMMANDES_URL, {
+      method:'POST',
+      mode:'no-cors', // Apps Script Web App ne renvoie pas de CORS propre
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify(Object.assign({cle:COMMANDES_CLE}, payload))
+    }).catch(()=>{}); // silencieux : jamais bloquant pour le client
+  }catch(e){ /* silencieux */ }
+}
+
+// ═══════════════════════════════════════════
 //  RIB — À MODIFIER AVEC TES VRAIES COORDONNÉES
 // ═══════════════════════════════════════════
 const RIB = {
@@ -1203,15 +1224,22 @@ function confirmOrder(){
   document.getElementById('rib-ref').textContent=ref;
   document.getElementById('ref-warning-code').textContent=ref;
 
-  // payload structuré (pour bot Option 1)
+  // payload structuré (pour bot Option 1 + enregistrement auto Sheet)
   const payload={
     ref, client:o, delivery:(modeLivraison==='domicile'?'Domicile':'Point Relais / Locker'), pays:paysLivraison, payment:'Virement',
     items:cart, subtotal:subtotal(),
     promo: promoActif ? {code:promoActif.code, label:promoActif.label} : null,
     bonus: bonusActif ? {code:bonusActif.code, label:bonusActif.label} : null,
+    remisePanier: remisePanier(),
+    remiseBonus: remiseBonus(),
     remise: remise(),
     shipping:shipping(), total:total(),
+    parrainPseudo: o.parrainPseudo || '',
   };
+
+  // 📋 Enregistrement automatique dans le Google Sheet — dès la confirmation,
+  // que le client envoie ensuite son récap ou non
+  enregistrerCommande(payload);
 
   // ─── Récap texte lisible (pour Option 2 : message pré-rempli) ───
   let lignes='';
