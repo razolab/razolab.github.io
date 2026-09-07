@@ -713,7 +713,7 @@ const FREE_SHIP = 150;
 //  Pour changer un code : renomme la clé (ex: "RAZO10" → "RAZO15")
 // ═══════════════════════════════════════════
 const PROMOS = {
-  "ETE2026":     { type:"pct", val:10, label:"-10 %" },
+  "RENTREE2026": { type:"pct", val:10, label:"-10 %" },
   "FIDELE20":    { type:"eur", val:20, label:"-20 €" },
 };
 let promoActif = null; // { code, type, val, label } — 1 seul actif, saisi dans le panier
@@ -957,7 +957,7 @@ function cartQty(i,delta){
 
 function subtotal(){return cart.reduce((s,it)=>s+it.price,0);}
 
-// Remise du code panier (ETE2026 / FIDELE20) seule
+// Remise du code panier (RENTREE2026 / FIDELE20) seule
 function remisePanier(){
   if(!promoActif) return 0;
   var st = subtotal();
