@@ -446,8 +446,9 @@ input::placeholder{color:var(--txt-faint);}
     <div class="parrain-box">
       <div class="parrain-title">⭐ Toi-même parrain ? Récupère ta récompense</div>
       <div class="field" style="margin-bottom:10px;">
-        <label class="field-label">Code récompense</label>
-        <input type="text" id="in-code-merci" placeholder="MERCI10" autocapitalize="characters">
+        <label class="field-label">Code récompense personnel</label>
+        <input type="text" id="in-code-merci" placeholder="ex : MERCI-XXXX" autocapitalize="characters" oninput="checkCodeMerci()">
+        <div id="merci-status" class="pays-note" style="margin-top:6px;"></div>
       </div>
       <div class="merci-qty-row">
         <span class="qty-field-label">Nombre de filleuls à valoriser</span>
@@ -457,7 +458,7 @@ input::placeholder{color:var(--txt-faint);}
           <button class="qty-big-btn" onclick="changeMerciQty(1)">+</button>
         </div>
       </div>
-      <div class="pays-note">1 filleul validé = 10 € de bonus. Confirmé par nos soins avant validation.</div>
+      <div class="pays-note">1 filleul validé = 10 € de bonus. Ton code personnel t'est envoyé par RAZOLAB dès qu'un filleul a commandé.</div>
     </div>
   </div>
 
@@ -553,7 +554,7 @@ const INSTA_USERNAME = "razo_lb";  // ← ton @username Instagram (sans @)
 //  Colle ici l'URL de ton Web App Apps Script (après déploiement)
 //  Doit matcher exactement CLE_SECRETE dans le script Google Sheet
 // ═══════════════════════════════════════════
-const COMMANDES_URL = "https://script.google.com/macros/s/AKfycbyJJStkz9hpeu6IP7mCFRcz9pezUWG7Hu1uWPGrkpfDPrgD4TGi3S6uR2GDXBZDpoDrYg/exec";
+const COMMANDES_URL = "https://script.google.com/macros/s/AKfycbyo36w6LGiYyb2SXn1snqDnX4hYR8Su6WVRuLAvuC3QIVgCkRQI1_PDxY8s7oQPivnnWg/exec";
 const COMMANDES_CLE = "razolab-2026-secure";
 
 // Envoie la commande vers le Google Sheet (silencieux, ne bloque jamais le client)
@@ -586,7 +587,41 @@ const RIB = {
 //  ⚙️ CONFIG : colle ici l'URL CSV publiée de ton onglet Stock
 //  (Fichier → Partager → Publier sur le web → onglet STOCK → CSV)
 // ═══════════════════════════════════════════
-const STOCK_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSvJfc5wEcic_dphY-MfayFadx7mxuIdbxA6qynnTkMhlN6ej9hpxksDi2IKaQ3JBfOZ3EiA8HAG2XR/pub?gid=1687285250&single=true&output=csv";
+const STOCK_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSq6ej1Sc6STdCUzqXwScjIPyqY-v9a5oXW5SBKgPA11TLCpYoRVAyRIO8ZBv7JgsugECKXx71vBOtr/pub?gid=1687285250&single=true&output=csv";
+
+// ═══════════════════════════════════════════
+//  ⚙️ CONFIG : URL CSV publiée de l'onglet "CODES PARRAIN"
+//  (colonnes : Code | Parrain | Crédits restants)
+// ═══════════════════════════════════════════
+const CODES_PARRAIN_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSq6ej1Sc6STdCUzqXwScjIPyqY-v9a5oXW5SBKgPA11TLCpYoRVAyRIO8ZBv7JgsugECKXx71vBOtr/pub?gid=1254980783&single=true&output=csv";
+
+// Codes parrain chargés dynamiquement { CODE: {parrain, credits} }
+let CODES_PARRAIN = {};
+
+async function loadCodesParrain(){
+  if(!CODES_PARRAIN_CSV_URL || CODES_PARRAIN_CSV_URL.includes("COLLE_ICI")){
+    console.log("Codes parrain : URL non configurée.");
+    return;
+  }
+  try{
+    const res = await fetch(CODES_PARRAIN_CSV_URL + "&_=" + Date.now()); // anti-cache
+    const csv = await res.text();
+    const lines = csv.split("\n").slice(1); // saute l'en-tête
+    lines.forEach(line=>{
+      const cols = line.split(",");
+      if(cols.length>=3){
+        const code = cols[0].trim().replace(/"/g,'').toUpperCase();
+        // DERNIÈRE colonne = crédits (robuste si le nom du parrain contient une virgule)
+        const credits = parseInt(cols[cols.length-1].trim().replace(/"/g,''),10);
+        const parrain = cols.slice(1, cols.length-1).join(",").trim().replace(/"/g,'');
+        if(code) CODES_PARRAIN[code] = { parrain: parrain, credits: isNaN(credits)?0:credits };
+      }
+    });
+    console.log("Codes parrain chargés :", Object.keys(CODES_PARRAIN).length);
+  }catch(e){
+    console.log("Codes parrain : impossible de charger le Sheet.", e);
+  }
+}
 
 // Stock chargé dynamiquement { CODE: quantité }
 let STOCK = {};
@@ -724,11 +759,12 @@ const PROMOS_BONUS = {
 };
 let bonusActif = null; // { code, type, val, label } — saisi sur l'écran livraison
 
-// Code récompense PARRAIN — cumulable avec le code panier, valeur × nombre de filleuls
-const MERCI_CODE = "MERCI10";
-const MERCI_VAL = 10; // € par filleul validé
-let merciActif = false;   // le code a été saisi et est valide
-let merciQty = 1;         // nombre de filleuls valorisés (1 à 10)
+// Code récompense PARRAIN — personnalisé (ex : MERCI-AYMAN), vérifié dans le Sheet
+const MERCI_VAL = 10;     // € par filleul validé
+let merciActif = false;   // le code saisi est valide
+let merciCodeActif = "";  // le code personnalisé saisi
+let merciMax = 1;         // crédits restants du parrain (plafond)
+let merciQty = 1;         // nombre de filleuls valorisés
 
 // ═══════════════════════════════════════════
 //  STATE
@@ -831,9 +867,29 @@ function changeQty(delta){
   document.getElementById('qty-big-num').textContent=currentSel.qty;
 }
 
-// Ajuste le nombre de filleuls valorisés (1 à 10) pour la récompense parrain
+// Vérifie en direct le code récompense saisi et plafonne le sélecteur
+function checkCodeMerci(){
+  const el = document.getElementById('in-code-merci');
+  const st = document.getElementById('merci-status');
+  const code = el.value.trim().toUpperCase();
+  if(!code){ st.textContent=''; st.style.color=''; merciMax=1; merciQty=1;
+    document.getElementById('merci-qty-num').textContent=1; return; }
+  const entry = CODES_PARRAIN[code];
+  if(!entry || entry.credits<=0){
+    st.textContent='❌ Code inconnu ou sans crédit disponible';
+    st.style.color='#ff6b6b'; merciMax=1; merciQty=1;
+    document.getElementById('merci-qty-num').textContent=1;
+  }else{
+    st.textContent='✅ Code valide — '+entry.credits+' filleul(s) disponible(s)';
+    st.style.color='#9dff1a'; merciMax=entry.credits;
+    if(merciQty>merciMax){ merciQty=merciMax; }
+    document.getElementById('merci-qty-num').textContent=merciQty;
+  }
+}
+
+// Ajuste le nombre de filleuls valorisés pour la récompense parrain
 function changeMerciQty(delta){
-  merciQty=Math.max(1,Math.min(10,merciQty+delta));
+  merciQty=Math.max(1,Math.min(merciMax,merciQty+delta));
   document.getElementById('merci-qty-num').textContent=merciQty;
 }
 
@@ -976,7 +1032,7 @@ function remiseBonus(){
 function libelleBonus(){
   const parts=[];
   if(bonusActif) parts.push(bonusActif.code);
-  if(merciActif) parts.push(MERCI_CODE+' ×'+merciQty);
+  if(merciActif) parts.push(merciCodeActif+' ×'+merciQty);
   return parts.join(' + ');
 }
 // Remise totale = panier + bonus, plafonnée au sous-total (jamais négatif)
@@ -1206,10 +1262,25 @@ function validateDelivery(){
   if(parrainCode && PROMOS_BONUS[parrainCode]){
     bonusActif = Object.assign({code:parrainCode}, PROMOS_BONUS[parrainCode]);
   }
-  // Code récompense parrain (MERCI10) — valeur × nombre de filleuls
-  if(merciCode === MERCI_CODE){
+  // Code récompense parrain personnalisé — vérifié dans le Sheet CODES PARRAIN
+  merciActif = false; merciCodeActif = "";
+  if(merciCode){
+    const entry = CODES_PARRAIN[merciCode];
+    if(!entry || entry.credits <= 0){
+      if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred('error');
+      alert("Code récompense invalide ou sans crédit disponible.\n\nCe code est personnel et t'est communiqué par RAZOLAB une fois qu'un filleul a commandé. Laisse le champ vide si tu n'en as pas.");
+      return;
+    }
     merciActif = true;
+    merciCodeActif = merciCode;
+    merciMax = entry.credits;
+    if(merciQty > merciMax){
+      merciQty = merciMax;
+      document.getElementById('merci-qty-num').textContent = merciQty;
+    }
   }
+  window._order.merciCode = merciCodeActif;
+  window._order.merciQty = merciQty;
   goScreen('payment');
 }
 
@@ -1234,7 +1305,7 @@ function confirmOrder(){
     items:cart, subtotal:subtotal(),
     promo: promoActif ? {code:promoActif.code, label:promoActif.label} : null,
     bonus: bonusActif ? {code:bonusActif.code, label:bonusActif.label} : null,
-    merci: merciActif ? {qty:merciQty} : null,
+    merci: merciActif ? {code:merciCodeActif, qty:merciQty} : null,
     remisePanier: remisePanier(),
     remiseBonus: remiseBonus(),
     remise: remise(),
@@ -1269,7 +1340,7 @@ Adresse : ${o.relay}
 Pays : ${o.pays || 'France'}
 ${o.parrainPseudo ? '🎁 Parrainé par : '+o.parrainPseudo+'\n' : ''}
 🚚 Livraison : ${modeLivraison==='domicile'?'Domicile':'Point Relais / Locker'} (${paysLivraison})
-💳 Paiement : Virement${promoActif ? '\n🎟️ Code promo : '+promoActif.code+' ('+promoActif.label+') → −'+remisePanier().toFixed(2)+'€' : ''}${bonusActif ? '\n🎁 Code parrainage : '+bonusActif.code+' → −'+((bonusActif.type==='pct'?subtotal()*bonusActif.val/100:bonusActif.val)).toFixed(2)+'€' : ''}${merciActif ? '\n⭐ Récompense parrain : '+MERCI_CODE+' ×'+merciQty+' filleul(s) → −'+(MERCI_VAL*merciQty).toFixed(2)+'€' : ''}
+💳 Paiement : Virement${promoActif ? '\n🎟️ Code promo : '+promoActif.code+' ('+promoActif.label+') → −'+remisePanier().toFixed(2)+'€' : ''}${bonusActif ? '\n🎁 Code parrainage : '+bonusActif.code+' → −'+((bonusActif.type==='pct'?subtotal()*bonusActif.val/100:bonusActif.val)).toFixed(2)+'€' : ''}${merciActif ? '\n⭐ Récompense parrain : '+merciCodeActif+' ×'+merciQty+' filleul(s) → −'+(MERCI_VAL*merciQty).toFixed(2)+'€' : ''}
 💰 TOTAL : ${total().toFixed(2)}€
 
 ━━━━━━━━━━━━━━━
@@ -1342,6 +1413,7 @@ updateBottomBar();
 loadStock().then(()=>{
   console.log("Stock prêt.");
 });
+loadCodesParrain();
 </script>
 </body>
 </html>
