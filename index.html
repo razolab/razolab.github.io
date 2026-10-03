@@ -97,6 +97,22 @@ input::placeholder{color:var(--txt-faint);}
 .prod-price-val.green{color:var(--green);}
 
 /* ── ADD BUTTON ── */
+.pays-note{font-size:11px;color:var(--txt-faint);margin-top:6px;}
+.parrain-box{background:var(--card);border:1px dashed var(--green);border-radius:12px;padding:14px 16px;margin-top:16px;}
+.parrain-title{font-size:13px;font-weight:700;color:var(--green);margin-bottom:12px;}
+.merci-qty-row{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
+
+/* ── QUANTITÉ ── */
+.added-toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--green);color:var(--txt);padding:12px 20px;border-radius:30px;font-size:13px;z-index:200;opacity:0;pointer-events:none;transition:all .3s;box-shadow:0 0 20px rgba(157,255,26,.25);white-space:nowrap;}
+.added-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;cursor:pointer;}
+.added-toast strong{color:var(--green);text-decoration:underline;}
+.qty-field{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:12px;}
+.qty-field-label{font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--txt-dim);}
+.qty-selector{display:flex;align-items:center;gap:16px;}
+.qty-big-btn{width:38px;height:38px;border:1px solid var(--green);background:rgba(157,255,26,.1);color:var(--green);border-radius:10px;font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.qty-big-btn:active{transform:scale(.92);}
+.qty-big-num{font-size:20px;font-weight:800;min-width:32px;text-align:center;color:var(--txt);}
+
 .add-btn{
   width:100%;background:linear-gradient(135deg,var(--green),#6fbf10);
   border:none;border-radius:12px;padding:16px;color:#0a0f08;font-size:15px;
@@ -120,6 +136,7 @@ input::placeholder{color:var(--txt-faint);}
 .acc-info{flex:1;}
 .acc-name{font-size:14px;font-weight:500;}
 .acc-price{font-size:12px;color:var(--txt-dim);}
+.acc-compo{font-size:11px;color:var(--txt-faint);margin:2px 0 3px;line-height:1.4;}
 .acc-qty{display:flex;align-items:center;gap:8px;}
 .qty-btn{width:26px;height:26px;border:1px solid var(--line);background:var(--card);color:var(--cyan);border-radius:6px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .qty-num{font-size:14px;min-width:20px;text-align:center;}
@@ -129,11 +146,28 @@ input::placeholder{color:var(--txt-faint);}
 .cart-item-info{flex:1;}
 .cart-item-name{font-size:14px;font-weight:600;margin-bottom:2px;}
 .cart-item-detail{font-size:12px;color:var(--txt-dim);}
+.cart-qty-row{display:flex;align-items:center;gap:10px;margin-top:8px;}
+.cart-qty-btn{width:28px;height:28px;border:1px solid var(--line);background:var(--bg2);color:var(--green);border-radius:8px;font-size:17px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.cart-qty-btn:active{transform:scale(.9);border-color:var(--green);}
+.cart-qty-num{font-size:14px;font-weight:700;min-width:22px;text-align:center;}
 .cart-item-right{display:flex;align-items:center;gap:12px;}
 .cart-item-price{font-size:15px;font-weight:700;color:var(--green);}
 .cart-del{color:#ff5566;font-size:18px;cursor:pointer;background:none;border:none;}
 .cart-empty{text-align:center;padding:50px 20px;color:var(--txt-faint);}
 .cart-empty-icon{font-size:40px;margin-bottom:12px;opacity:.4;}
+
+/* ── TARIFS GRID ── */
+.tarifs-head-row{display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--green);margin-bottom:4px;}
+.th-prod{flex:1;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--green);}
+.th-price{width:56px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--txt-dim);}
+.tarif-cat{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--cyan);padding:14px 14px 6px;text-transform:uppercase;}
+.tarif-row{display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tarif-row.rupture{opacity:.4;}
+.tarif-name{flex:1;font-size:14px;font-weight:500;}
+.tarif-name .rupt-tag{font-size:10px;color:#ff5566;font-weight:700;margin-left:6px;}
+.acc-detail{font-size:11px;color:var(--txt-dim);margin-top:3px;font-weight:400;}
+.tarif-p{width:56px;text-align:right;font-size:13px;font-weight:600;}
+.tarif-p.big{color:var(--green);}
 
 /* ── PROMO ── */
 .promo-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:6px;}
@@ -221,6 +255,14 @@ input::placeholder{color:var(--txt-faint);}
         </span>
         <span class="menu-btn-arrow">→</span>
       </button>
+      <button class="menu-btn" onclick="goScreen('tarifs')">
+        <span class="menu-btn-icon">💰</span>
+        <span class="menu-btn-txt">
+          <div class="menu-btn-title">Tarifs</div>
+          <div class="menu-btn-sub">Voir toute la grille de prix</div>
+        </span>
+        <span class="menu-btn-arrow">→</span>
+      </button>
       <button class="menu-btn" onclick="goScreen('sav')">
         <span class="menu-btn-icon">💬</span>
         <span class="menu-btn-txt">
@@ -235,7 +277,7 @@ input::placeholder{color:var(--txt-faint);}
       <span class="hbadge c">COA Janoshik</span>
       <span class="hbadge c">Envoi discret</span>
     </div>
-    <div class="promo-line">⚡ Port offert dès 150 € · Mondial Relais 10 €</div>
+    <div class="promo-line">⚡ Port offert dès 150 € · Relais dès 10 €</div>
   </div>
 
   <!-- ══ SCREEN: CATALOGUE ══ -->
@@ -280,15 +322,42 @@ input::placeholder{color:var(--txt-faint);}
     </div>
 
     <!-- accessories -->
-    <div class="acc-section" id="acc-section" style="display:none;">
+    <div class="acc-section" id="acc-section">
       <button class="acc-toggle" id="acc-toggle" onclick="toggleAcc()">
-        <span class="acc-toggle-label">➕ Ajouter des accessoires (optionnel)</span>
+        <span class="acc-toggle-label">💧 Accessoires <span style="font-weight:400;opacity:.6;font-size:12px;">(seuls ou en complément)</span></span>
         <span class="acc-toggle-icon">▾</span>
       </button>
       <div class="acc-list" id="acc-list"></div>
     </div>
 
+    <!-- quantité -->
+    <div class="qty-field" id="qty-field" style="display:none;">
+      <span class="qty-field-label">Quantité</span>
+      <div class="qty-selector">
+        <button class="qty-big-btn" onclick="changeQty(-1)">−</button>
+        <span class="qty-big-num" id="qty-big-num">1</span>
+        <button class="qty-big-btn" onclick="changeQty(1)">+</button>
+      </div>
+    </div>
+
     <button class="add-btn" id="add-btn" onclick="addToCart()" disabled>Ajouter au panier</button>
+  </div>
+
+  <!-- ══ SCREEN: TARIFS ══ -->
+  <div class="screen" id="screen-tarifs">
+    <div class="sec-head">
+      <span class="sec-title">💰 Grille tarifaire</span>
+      <button class="back-btn" onclick="goScreen('home')">← Retour</button>
+    </div>
+    <div class="tarifs-head-row">
+      <span class="th-prod">Produit</span>
+      <span class="th-price">1 fiole</span>
+      <span class="th-price">×5</span>
+      <span class="th-price">×10</span>
+    </div>
+    <div id="tarifs-list"></div>
+    <div class="promo-line" style="margin-top:16px;">⚡ Port offert dès 150 € · Relais dès 10 €</div>
+    <button class="add-btn" style="margin-top:8px;" onclick="goScreen('catalogue')">🧪 Passer commande</button>
   </div>
 
   <!-- ══ SCREEN: CART ══ -->
@@ -311,6 +380,7 @@ input::placeholder{color:var(--txt-faint);}
     <div class="summary" id="cart-summary" style="display:none;">
       <div class="sum-row"><span class="sum-label">Sous-total</span><span class="sum-val" id="sum-subtotal"></span></div>
       <div class="sum-row" id="sum-remise-row" style="display:none;"><span class="sum-label" id="sum-remise-label">Remise</span><span class="sum-val green" id="sum-remise"></span></div>
+      <div class="sum-row" id="sum-bonus-row" style="display:none;"><span class="sum-label" id="sum-bonus-label">Bonus</span><span class="sum-val green" id="sum-bonus"></span></div>
       <div class="sum-row"><span class="sum-label">Livraison</span><span class="sum-val" id="sum-shipping"></span></div>
       <div class="sum-row total"><span>Total</span><span class="sum-val green" id="sum-total"></span></div>
     </div>
@@ -322,16 +392,29 @@ input::placeholder{color:var(--txt-faint);}
       <span class="sec-title">🚚 Livraison</span>
       <button class="back-btn" onclick="goScreen('cart')">← Panier</button>
     </div>
-    <div class="step-info">Livraison en <strong>Mondial Relais</strong> — <strong>10 €</strong>, offerte dès 150 € d'achat.</div>
-    <div class="opt-card selected" onclick="selectDelivery(this)">
-      <div class="opt-radio"></div>
-      <span class="opt-icon">📦</span>
-      <div class="opt-info">
-        <div class="opt-name">Mondial Relais</div>
-        <div class="opt-desc">Point relais · Envoi discret & suivi</div>
+    <div class="step-info" id="info-port">Choisis ton pays pour voir les options de livraison disponibles.</div>
+
+    <div class="field">
+      <label class="field-label">Pays de livraison</label>
+      <div class="select-wrap">
+        <select id="in-pays" onchange="onPaysChange()">
+          <option value="France">🇫🇷 France</option>
+          <option value="Allemagne">🇩🇪 Allemagne</option>
+          <option value="Belgique">🇧🇪 Belgique</option>
+          <option value="Espagne">🇪🇸 Espagne</option>
+          <option value="Italie">🇮🇹 Italie</option>
+          <option value="Luxembourg">🇱🇺 Luxembourg</option>
+          <option value="Pays-Bas">🇳🇱 Pays-Bas</option>
+          <option value="Pologne">🇵🇱 Pologne</option>
+          <option value="Portugal">🇵🇹 Portugal</option>
+        </select>
       </div>
+      <div class="pays-note">Nous livrons uniquement dans ces pays.</div>
     </div>
-    <div class="field" style="margin-top:20px;">
+
+    <div id="modes-livraison"></div>
+
+    <div class="field">
       <label class="field-label">Nom complet</label>
       <input type="text" id="in-name" placeholder="Prénom et nom">
     </div>
@@ -346,6 +429,36 @@ input::placeholder{color:var(--txt-faint);}
     <div class="field">
       <label class="field-label">Adresse</label>
       <input type="text" id="in-relay" placeholder="Rue, code postal, ville">
+    </div>
+
+    <div class="parrain-box">
+      <div class="parrain-title">🎁 Tu as été parrainé ?</div>
+      <div class="field" style="margin-bottom:10px;">
+        <label class="field-label">Pseudo du parrain</label>
+        <input type="text" id="in-parrain" placeholder="Ex : @jean_razo">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label class="field-label">Code parrainage</label>
+        <input type="text" id="in-code-parrain" placeholder="PARRAINAGE10" autocapitalize="characters">
+      </div>
+    </div>
+
+    <div class="parrain-box">
+      <div class="parrain-title">⭐ Toi-même parrain ? Récupère ta récompense</div>
+      <div class="field" style="margin-bottom:10px;">
+        <label class="field-label">Code récompense personnel</label>
+        <input type="text" id="in-code-merci" placeholder="ex : MERCI-XXXX" autocapitalize="characters" oninput="checkCodeMerci()">
+        <div id="merci-status" class="pays-note" style="margin-top:6px;"></div>
+      </div>
+      <div class="merci-qty-row">
+        <span class="qty-field-label">Nombre de filleuls à valoriser</span>
+        <div class="qty-selector">
+          <button class="qty-big-btn" onclick="changeMerciQty(-1)">−</button>
+          <span class="qty-big-num" id="merci-qty-num">1</span>
+          <button class="qty-big-btn" onclick="changeMerciQty(1)">+</button>
+        </div>
+      </div>
+      <div class="pays-note">1 filleul validé = 10 € de bonus. Ton code personnel t'est envoyé par RAZOLAB dès qu'un filleul a commandé.</div>
     </div>
   </div>
 
@@ -374,6 +487,7 @@ input::placeholder{color:var(--txt-faint);}
     <div class="summary" style="margin-top:20px;">
       <div class="sum-row"><span class="sum-label">Sous-total</span><span class="sum-val" id="pay-subtotal"></span></div>
       <div class="sum-row" id="pay-remise-row" style="display:none;"><span class="sum-label" id="pay-remise-label">Remise</span><span class="sum-val green" id="pay-remise"></span></div>
+      <div class="sum-row" id="pay-bonus-row" style="display:none;"><span class="sum-label" id="pay-bonus-label">Bonus</span><span class="sum-val green" id="pay-bonus"></span></div>
       <div class="sum-row"><span class="sum-label">Livraison</span><span class="sum-val" id="pay-shipping"></span></div>
       <div class="sum-row total"><span>Total à régler</span><span class="sum-val green" id="pay-total"></span></div>
     </div>
@@ -399,8 +513,13 @@ input::placeholder{color:var(--txt-faint);}
       <div class="ref-warning-text">Indique impérativement cette référence dans le <strong>motif de ton virement</strong> pour qu'on identifie ta commande :</div>
       <div class="ref-warning-code" id="ref-warning-code"></div>
     </div>
-    <button class="cta-btn full" style="margin-top:8px;" onclick="sendOrderToAdmin()">📩 Envoyer ma commande</button>
-    <div class="step-info" style="margin-top:12px;text-align:center;">Clique ci-dessus pour finaliser : ta commande s'ouvre dans notre messagerie, il te suffit d'appuyer sur <strong>Envoyer</strong>.</div>
+    <!-- Bouton Telegram (si ouvert dans Telegram) -->
+    <button class="cta-btn full" id="btn-send-tg" style="margin-top:8px;display:none;" onclick="sendOrderToAdmin()">📩 Envoyer ma commande</button>
+    <div class="step-info" id="info-send-tg" style="margin-top:12px;text-align:center;display:none;">Clique ci-dessus pour finaliser : ta commande s'ouvre dans notre messagerie, il te suffit d'appuyer sur <strong>Envoyer</strong>.</div>
+
+    <!-- Bouton Copier (si ouvert hors Telegram, ex: Instagram) -->
+    <button class="cta-btn full" id="btn-copy" style="margin-top:8px;display:none;" onclick="copierCommande()">📋 Copier ma commande</button>
+    <div class="step-info" id="info-copy" style="margin-top:12px;text-align:center;display:none;">Clique pour copier ta commande, puis <strong>colle-la dans notre DM Instagram</strong> pour la valider. On te confirme tout de suite après.</div>
   </div>
 
   <!-- ══ SCREEN: SAV ══ -->
@@ -428,6 +547,28 @@ const tg = window.Telegram?.WebApp;
 if(tg){ tg.ready(); tg.expand(); }
 
 const ADMIN_USERNAME = "RAZO_LB"; // ← ton @username Telegram perso (sans @)
+const INSTA_USERNAME = "razo_lb";  // ← ton @username Instagram (sans @)
+
+// ═══════════════════════════════════════════
+//  📋 ENREGISTREMENT AUTO DES COMMANDES
+//  Colle ici l'URL de ton Web App Apps Script (après déploiement)
+//  Doit matcher exactement CLE_SECRETE dans le script Google Sheet
+// ═══════════════════════════════════════════
+const COMMANDES_URL = "https://script.google.com/macros/s/AKfycbyo36w6LGiYyb2SXn1snqDnX4hYR8Su6WVRuLAvuC3QIVgCkRQI1_PDxY8s7oQPivnnWg/exec";
+const COMMANDES_CLE = "razolab-2026-secure";
+
+// Envoie la commande vers le Google Sheet (silencieux, ne bloque jamais le client)
+function enregistrerCommande(payload){
+  if(!COMMANDES_URL || COMMANDES_URL.includes("COLLE_ICI")) return;
+  try{
+    fetch(COMMANDES_URL, {
+      method:'POST',
+      mode:'no-cors', // Apps Script Web App ne renvoie pas de CORS propre
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify(Object.assign({cle:COMMANDES_CLE}, payload))
+    }).catch(()=>{}); // silencieux : jamais bloquant pour le client
+  }catch(e){ /* silencieux */ }
+}
 
 // ═══════════════════════════════════════════
 //  RIB — À MODIFIER AVEC TES VRAIES COORDONNÉES
@@ -447,6 +588,40 @@ const RIB = {
 //  (Fichier → Partager → Publier sur le web → onglet STOCK → CSV)
 // ═══════════════════════════════════════════
 const STOCK_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSq6ej1Sc6STdCUzqXwScjIPyqY-v9a5oXW5SBKgPA11TLCpYoRVAyRIO8ZBv7JgsugECKXx71vBOtr/pub?gid=1687285250&single=true&output=csv";
+
+// ═══════════════════════════════════════════
+//  ⚙️ CONFIG : URL CSV publiée de l'onglet "CODES PARRAIN"
+//  (colonnes : Code | Parrain | Crédits restants)
+// ═══════════════════════════════════════════
+const CODES_PARRAIN_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSq6ej1Sc6STdCUzqXwScjIPyqY-v9a5oXW5SBKgPA11TLCpYoRVAyRIO8ZBv7JgsugECKXx71vBOtr/pub?gid=1254980783&single=true&output=csv";
+
+// Codes parrain chargés dynamiquement { CODE: {parrain, credits} }
+let CODES_PARRAIN = {};
+
+async function loadCodesParrain(){
+  if(!CODES_PARRAIN_CSV_URL || CODES_PARRAIN_CSV_URL.includes("COLLE_ICI")){
+    console.log("Codes parrain : URL non configurée.");
+    return;
+  }
+  try{
+    const res = await fetch(CODES_PARRAIN_CSV_URL + "&_=" + Date.now()); // anti-cache
+    const csv = await res.text();
+    const lines = csv.split("\n").slice(1); // saute l'en-tête
+    lines.forEach(line=>{
+      const cols = line.split(",");
+      if(cols.length>=3){
+        const code = cols[0].trim().replace(/"/g,'').toUpperCase();
+        // DERNIÈRE colonne = crédits (robuste si le nom du parrain contient une virgule)
+        const credits = parseInt(cols[cols.length-1].trim().replace(/"/g,''),10);
+        const parrain = cols.slice(1, cols.length-1).join(",").trim().replace(/"/g,'');
+        if(code) CODES_PARRAIN[code] = { parrain: parrain, credits: isNaN(credits)?0:credits };
+      }
+    });
+    console.log("Codes parrain chargés :", Object.keys(CODES_PARRAIN).length);
+  }catch(e){
+    console.log("Codes parrain : impossible de charger le Sheet.", e);
+  }
+}
 
 // Stock chargé dynamiquement { CODE: quantité }
 let STOCK = {};
@@ -490,47 +665,6 @@ function isRupture(code){
 }
 
 // ═══════════════════════════════════════════
-//  🤝 CODES PARRAIN — GOOGLE SHEET + APPS SCRIPT
-//  Onglet "CODES PARRAIN" : Code | Parrain | Crédits restants
-//  1 crédit = -10 €. Tous les crédits sont utilisables d'un coup.
-//  Les crédits utilisés sont retirés
-//  automatiquement du Sheet quand le client valide sa commande.
-// ═══════════════════════════════════════════
-const PARRAIN_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSq6ej1Sc6STdCUzqXwScjIPyqY-v9a5oXW5SBKgPA11TLCpYoRVAyRIO8ZBv7JgsugECKXx71vBOtr/pub?gid=1254980783&single=true&output=csv";
-const PARRAIN_API = "https://script.google.com/macros/s/AKfycbxDr90pshNRRB_x5RoBW7mNFuCglzsY_ifwOu5CXkuG_zk1vY1iG6iwU0AvrUyi6ALEYg/exec";
-const PARRAIN_REMISE = 10; // € par crédit
-let PARRAINS = {}; // { CODE: crédits restants }
-
-async function loadParrains(){
-  try{
-    const res = await fetch(PARRAIN_CSV_URL + "&_=" + Date.now());
-    const csv = await res.text();
-    const next = {};
-    csv.split("\n").slice(1).forEach(line=>{
-      const cols = line.split(",");
-      if(cols.length>=2){
-        const code = cols[0].trim().replace(/"/g,'').toUpperCase();
-        const cr = parseInt(cols[cols.length-1].trim().replace(/"/g,''),10);
-        if(code) next[code] = isNaN(cr)?0:cr;
-      }
-    });
-    PARRAINS = next;
-  }catch(e){ console.log("Parrains : chargement impossible", e); }
-}
-
-// Retire 1 crédit dans le Sheet. Renvoie true si OK (ou si la réponse est illisible).
-async function consommerCredit(code){
-  try{
-    const res = await fetch(PARRAIN_API + "?code=" + encodeURIComponent(code));
-    const j = await res.json();
-    return j.ok === true;
-  }catch(e){
-    console.log("Parrain : réponse illisible, on laisse passer", e);
-    return true;
-  }
-}
-
-// ═══════════════════════════════════════════
 //  CATALOGUE
 //  cat -> couleur ; produits { code, nom, cat, p1, p5, p10 }
 // ═══════════════════════════════════════════
@@ -567,19 +701,45 @@ const PRODUCTS = {
   "NP810":{nom:"Snap-8 10mg",cat:"👑 Anti-Âge & Vitalité",p1:30,p5:135,p10:220},
   // 🧠 Neurologique
   "SK5":{nom:"Sélank 5mg",cat:"🧠 Neurologique",p1:35,p5:155,p10:260},
+  "SMX10":{nom:"Semax 10mg",cat:"🧠 Neurologique",p1:40,p5:180,p10:300},
 };
 
 // Accessoires (prix unitaires cohérents avec le catalogue)
 const ACCESSORIES = [
   {code:"KIT3",  nom:"Kit reconstitution 3ml",  price:8},
   {code:"KIT10", nom:"Kit reconstitution 10ml", price:12},
+  {code:"SPRAY10", nom:"Kit spray nasal", price:8},
+  {code:"BA3",   nom:"Eau bactériostatique 3ml", price:3.5},
   {code:"BA10",  nom:"Eau bactériostatique 10ml", price:6},
-  {code:"WA10",  nom:"Eau stérile 10ml", price:4.5},
   {code:"SERI1", nom:"Seringues insuline ×10", price:5.5},
+  {code:"SERI3", nom:"Seringue transfert 3ml", price:1.5},
   {code:"TAMP",  nom:"Tampons alcool ×20", price:3.5},
 ];
 
-const SHIPPING = 10;
+// Composition détaillée des kits (affichée sous le nom)
+const ACC_DETAIL = {
+  "KIT3":"eau bacté 3ml + 10 seringues + 10 tampons",
+  "KIT10":"eau bacté 10ml + 10 seringues + 20 tampons",
+  "SPRAY10":"flacon spray 10ml + seringue de transfert 3ml",
+};
+
+const SHIPPING_RELAIS = 10;    // Point relais / Locker — même tarif partout
+const SHIPPING_DOMICILE = 12.5; // Livraison à domicile — même tarif partout
+
+// Modes disponibles par pays : "relais", "domicile", ou les deux
+const MODES_PAYS = {
+  "France":     ["relais","domicile"],
+  "Allemagne":  ["domicile"],           // pas de relais en Allemagne
+  "Belgique":   ["relais"],
+  "Espagne":    ["relais"],
+  "Italie":     ["relais"],             // locker = relais
+  "Luxembourg": ["relais"],             // locker = relais
+  "Pays-Bas":   ["relais"],
+  "Pologne":    ["relais"],
+  "Portugal":   ["relais"],             // relais/locker
+};
+let paysLivraison = "France";
+let modeLivraison = "relais"; // "relais" ou "domicile"
 const FREE_SHIP = 150;
 
 // ═══════════════════════════════════════════
@@ -589,17 +749,29 @@ const FREE_SHIP = 150;
 //  Pour changer un code : renomme la clé (ex: "RAZO10" → "RAZO15")
 // ═══════════════════════════════════════════
 const PROMOS = {
-  "ETE2026": { type:"pct", val:10, label:"-10 %" },
   "RENTREE2026": { type:"pct", val:10, label:"-10 %" },
-  "FIDELE20":{ type:"eur", val:20, label:"-20 €" },
+  "FIDELE20":    { type:"eur", val:20, label:"-20 €" },
 };
-let promoActif = null; // { code, type, val, label }
+let promoActif = null; // { code, type, val, label } — 1 seul actif, saisi dans le panier
+
+// Code filleul (parrainé) — toujours cumulable avec le code panier, 1 seul usage
+const PROMOS_BONUS = {
+  "PARRAINAGE10":{ type:"pct", val:10, label:"-10 % (parrainage)" },
+};
+let bonusActif = null; // { code, type, val, label } — saisi sur l'écran livraison
+
+// Code récompense PARRAIN — personnalisé (ex : MERCI-AYMAN), vérifié dans le Sheet
+const MERCI_VAL = 10;     // € par filleul validé
+let merciActif = false;   // le code saisi est valide
+let merciCodeActif = "";  // le code personnalisé saisi
+let merciMax = 1;         // crédits restants du parrain (plafond)
+let merciQty = 1;         // nombre de filleuls valorisés
 
 // ═══════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════
 let cart = [];
-let currentSel = { cat:"", mol:"", pack:"", acc:{} };
+let currentSel = { cat:"", mol:"", pack:"", qty:1, acc:{} };
 let delivery = "Mondial Relais";
 let payment = "Virement";
 
@@ -619,7 +791,7 @@ function initCatalogue(){
     row.className='acc-item';
     row.innerHTML=`
       <div class="acc-check" id="chk-${a.code}" onclick="toggleAccItem('${a.code}')"></div>
-      <div class="acc-info"><div class="acc-name">${a.nom}</div><div class="acc-price">${a.price.toFixed(2)} €</div></div>
+      <div class="acc-info"><div class="acc-name">${a.nom}</div>${ACC_DETAIL[a.code]?`<div class="acc-compo">${ACC_DETAIL[a.code]}</div>`:''}<div class="acc-price">${a.price.toFixed(2)} €</div></div>
       <div class="acc-qty">
         <button class="qty-btn" onclick="accQty('${a.code}',-1)">−</button>
         <span class="qty-num" id="qty-${a.code}">0</span>
@@ -631,13 +803,14 @@ function initCatalogue(){
 
 function onCatChange(){
   const cat=document.getElementById('sel-cat').value;
-  currentSel.cat=cat; currentSel.mol=""; currentSel.pack="";
+  currentSel.cat=cat; currentSel.mol=""; currentSel.pack=""; currentSel.qty=1;
   const selMol=document.getElementById('sel-mol');
   selMol.innerHTML='<option value="">— Choisir une molécule —</option>';
   document.getElementById('field-pack').style.display='none';
   document.getElementById('prod-card').classList.remove('show');
-  document.getElementById('acc-section').style.display='none';
-  document.getElementById('add-btn').disabled=true;
+  document.getElementById('qty-field').style.display='none';
+  document.getElementById('qty-big-num').textContent='1';
+  majBoutonAjout();
   if(!cat){selMol.disabled=true;return;}
   selMol.disabled=false;
   Object.keys(PRODUCTS).filter(k=>PRODUCTS[k].cat===cat).forEach(code=>{
@@ -658,8 +831,7 @@ function onMolChange(){
   const fieldPack=document.getElementById('field-pack');
   const selPack=document.getElementById('sel-pack');
   document.getElementById('prod-card').classList.remove('show');
-  document.getElementById('acc-section').style.display='none';
-  document.getElementById('add-btn').disabled=true;
+  majBoutonAjout();
   if(!code){fieldPack.style.display='none';return;}
   const p=PRODUCTS[code];
   selPack.innerHTML='<option value="">— Choisir un format —</option>';
@@ -684,9 +856,42 @@ function onMolChange(){
 function onPackChange(){
   const pack=document.getElementById('sel-pack').value;
   currentSel.pack=pack;
-  document.getElementById('acc-section').style.display= pack?'block':'none';
+  currentSel.qty=1;
+  document.getElementById('qty-big-num').textContent='1';
+  document.getElementById('qty-field').style.display= pack?'flex':'none';
   // bloque l'ajout si produit en rupture
-  document.getElementById('add-btn').disabled=(!pack || isRupture(currentSel.mol));
+  majBoutonAjout();
+}
+
+function changeQty(delta){
+  currentSel.qty=Math.max(1,currentSel.qty+delta);
+  document.getElementById('qty-big-num').textContent=currentSel.qty;
+}
+
+// Vérifie en direct le code récompense saisi et plafonne le sélecteur
+function checkCodeMerci(){
+  const el = document.getElementById('in-code-merci');
+  const st = document.getElementById('merci-status');
+  const code = el.value.trim().toUpperCase();
+  if(!code){ st.textContent=''; st.style.color=''; merciMax=1; merciQty=1;
+    document.getElementById('merci-qty-num').textContent=1; return; }
+  const entry = CODES_PARRAIN[code];
+  if(!entry || entry.credits<=0){
+    st.textContent='❌ Code inconnu ou sans crédit disponible';
+    st.style.color='#ff6b6b'; merciMax=1; merciQty=1;
+    document.getElementById('merci-qty-num').textContent=1;
+  }else{
+    st.textContent='✅ Code valide — '+entry.credits+' filleul(s) disponible(s)';
+    st.style.color='#9dff1a'; merciMax=entry.credits;
+    if(merciQty>merciMax){ merciQty=merciMax; }
+    document.getElementById('merci-qty-num').textContent=merciQty;
+  }
+}
+
+// Ajuste le nombre de filleuls valorisés pour la récompense parrain
+function changeMerciQty(delta){
+  merciQty=Math.max(1,Math.min(merciMax,merciQty+delta));
+  document.getElementById('merci-qty-num').textContent=merciQty;
 }
 
 function toggleAcc(){
@@ -706,6 +911,21 @@ function refreshAcc(code){
   const q=currentSel.acc[code];
   document.getElementById('qty-'+code).textContent=q;
   document.getElementById('chk-'+code).classList.toggle('checked',q>0);
+  majBoutonAjout();
+}
+
+// Y a-t-il au moins un accessoire sélectionné ?
+function aDesAccessoires(){
+  return ACCESSORIES.some(a=>currentSel.acc[a.code]>0);
+}
+
+// Le bouton s'active si molécule+pack OU accessoires seuls
+function majBoutonAjout(){
+  const btn=document.getElementById('add-btn');
+  const molOk = currentSel.mol && currentSel.pack && !isRupture(currentSel.mol);
+  const accOk = aDesAccessoires();
+  btn.disabled = !(molOk || accOk);
+  btn.textContent = (!molOk && accOk) ? 'Ajouter les accessoires' : 'Ajouter au panier';
 }
 
 // ═══════════════════════════════════════════
@@ -715,20 +935,35 @@ function packLabel(pack){return pack==='x1'?'1 fiole':pack==='x5'?'Lot × 5':'Lo
 function packPrice(code,pack){const p=PRODUCTS[code];return pack==='x1'?p.p1:pack==='x5'?p.p5:p.p10;}
 
 function addToCart(){
-  const {mol,pack}=currentSel;
-  if(!mol||!pack)return;
-  if(isRupture(mol)){alert('Ce produit est actuellement en rupture de stock.');return;}
-  const p=PRODUCTS[mol];
-  const price=packPrice(mol,pack);
-  cart.push({type:'prod',code:mol,nom:p.nom,pack:packLabel(pack),price:price});
+  const {mol,pack,qty}=currentSel;
+  const molOk = mol && pack;
+  if(!molOk && !aDesAccessoires()) return;
+  if(molOk && isRupture(mol)){alert('Ce produit est actuellement en rupture de stock.');return;}
+  if(molOk){
+    const p=PRODUCTS[mol];
+    const unit=packPrice(mol,pack);
+    const q=Math.max(1,qty);
+    // Fusionne si le même produit+pack est déjà au panier
+    let found=false;
+    for(const it of cart){
+      if(it.type==='prod'&&it.code===mol&&it.pack===packLabel(pack)){
+        it.qty=(it.qty||1)+q;
+        it.price=it.unit*it.qty;
+        found=true;break;
+      }
+    }
+    if(!found){
+      cart.push({type:'prod',code:mol,nom:p.nom,pack:packLabel(pack),unit:unit,qty:q,price:unit*q});
+    }
+  }
   // accessories
   ACCESSORIES.forEach(a=>{
-    const q=currentSel.acc[a.code];
-    if(q>0){
+    const qa=currentSel.acc[a.code];
+    if(qa>0){
       for(const it of cart){
-        if(it.type==='acc'&&it.code===a.code){it.qty+=q;it.price+=a.price*q;return;}
+        if(it.type==='acc'&&it.code===a.code){it.qty+=qa;it.price+=a.price*qa;return;}
       }
-      cart.push({type:'acc',code:a.code,nom:a.nom,qty:q,price:a.price*q});
+      cart.push({type:'acc',code:a.code,nom:a.nom,unit:a.price,qty:qa,price:a.price*qa});
     }
   });
   // reset selection
@@ -739,27 +974,81 @@ function addToCart(){
   document.getElementById('acc-list').classList.remove('open');
   if(tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
   updateBottomBar();
-  goScreen('cart');
+  showAddedToast();
+}
+
+// Petit message de confirmation après ajout (reste sur le catalogue)
+function showAddedToast(){
+  let t=document.getElementById('added-toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='added-toast';
+    t.className='added-toast';
+    document.body.appendChild(t);
+  }
+  const n=cart.reduce((s,it)=>s+(it.type==='prod'?(it.qty||1):0),0);
+  t.innerHTML=`✅ Ajouté au panier — <strong>voir le panier (${cart.length})</strong>`;
+  t.onclick=()=>goScreen('cart');
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(()=>t.classList.remove('show'),3500);
 }
 
 function delCartItem(i){cart.splice(i,1);renderCart();updateBottomBar();}
 
+// Ajuste la quantité d'une ligne du panier (supprime si 0)
+function cartQty(i,delta){
+  const it=cart[i];
+  if(!it)return;
+  const q=(it.qty||1)+delta;
+  if(q<=0){ cart.splice(i,1); }
+  else{
+    it.qty=q;
+    const unit = it.unit || (it.price/(it.qty-delta||1));
+    it.unit=unit;
+    it.price=unit*q;
+  }
+  if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+  renderCart(); updateBottomBar();
+}
+
 function subtotal(){return cart.reduce((s,it)=>s+it.price,0);}
 
-// Montant de la remise (0 si aucun code)
-function remise(){
+// Remise du code panier (RENTREE2026 / FIDELE20) seule
+function remisePanier(){
   if(!promoActif) return 0;
   var st = subtotal();
   var r = promoActif.type==="pct" ? st*promoActif.val/100 : promoActif.val;
-  return Math.min(r, st); // jamais plus que le sous-total
+  return Math.min(r, st);
+}
+// Remise du code bonus/parrainage (filleul + récompense parrain), cumulable avec le panier
+function remiseBonus(){
+  var st = subtotal();
+  var r = 0;
+  if(bonusActif){ r += bonusActif.type==="pct" ? st*bonusActif.val/100 : bonusActif.val; }
+  if(merciActif){ r += MERCI_VAL * merciQty; }
+  return Math.min(r, st);
+}
+// Construit le libellé de la ligne Bonus selon ce qui est actif
+function libelleBonus(){
+  const parts=[];
+  if(bonusActif) parts.push(bonusActif.code);
+  if(merciActif) parts.push(merciCodeActif+' ×'+merciQty);
+  return parts.join(' + ');
+}
+// Remise totale = panier + bonus, plafonnée au sous-total (jamais négatif)
+function remise(){
+  var st = subtotal();
+  return Math.min(remisePanier() + remiseBonus(), st);
 }
 // Sous-total après remise (sert de base au port offert)
 function sousTotalRemise(){return subtotal()-remise();}
-function shipping(){return sousTotalRemise()>=FREE_SHIP?0:(cart.length?SHIPPING:0);}
+function fraisPort(){return modeLivraison==='domicile' ? SHIPPING_DOMICILE : SHIPPING_RELAIS;}
+function shipping(){return sousTotalRemise()>=FREE_SHIP?0:(cart.length?fraisPort():0);}
 function total(){return sousTotalRemise()+shipping();}
 
-// Applique le code saisi (codes promo + codes parrain)
-async function appliquerPromo(){
+// Applique le code saisi
+function appliquerPromo(){
   var champ = document.getElementById('in-promo');
   var msg   = document.getElementById('promo-msg');
   var code  = champ.value.trim().toUpperCase();
@@ -770,25 +1059,10 @@ async function appliquerPromo(){
     msg.className = 'promo-msg ok';
     if(tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
   } else {
-    msg.textContent = '⏳ Vérification…'; msg.className = 'promo-msg';
-    await loadParrains();
-    if(code in PARRAINS && PARRAINS[code] > 0){
-      var nb = PARRAINS[code];
-      promoActif = { code:code, type:"eur", val:PARRAIN_REMISE*nb, label:"-"+(PARRAIN_REMISE*nb)+" € (parrain)", parrain:true, consomme:false };
-      msg.textContent = '✅ Code parrain appliqué : -'+(PARRAIN_REMISE*nb)+' € ('+nb+' crédit'+(nb>1?'s':'')+')';
-      msg.className = 'promo-msg ok';
-      if(tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-    } else if(code in PARRAINS){
-      promoActif = null;
-      msg.textContent = '❌ Ce code parrain n\'a plus de crédit';
-      msg.className = 'promo-msg ko';
-      if(tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-    } else {
-      promoActif = null;
-      msg.textContent = '❌ Code invalide';
-      msg.className = 'promo-msg ko';
-      if(tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-    }
+    promoActif = null;
+    msg.textContent = '❌ Code invalide';
+    msg.className = 'promo-msg ko';
+    if(tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
   }
   renderCart(); updateBottomBar();
 }
@@ -808,7 +1082,12 @@ function renderCart(){
     <div class="cart-item">
       <div class="cart-item-info">
         <div class="cart-item-name">${it.nom}</div>
-        <div class="cart-item-detail">${it.type==='prod'?it.pack:'×'+it.qty}</div>
+        <div class="cart-item-detail">${it.type==='prod'?it.pack:'unité'} · ${it.unit?it.unit.toFixed(2)+' € pièce':''}</div>
+        <div class="cart-qty-row">
+          <button class="cart-qty-btn" onclick="cartQty(${i},-1)">−</button>
+          <span class="cart-qty-num">${it.qty||1}</span>
+          <button class="cart-qty-btn" onclick="cartQty(${i},1)">+</button>
+        </div>
       </div>
       <div class="cart-item-right">
         <span class="cart-item-price">${it.price.toFixed(2)} €</span>
@@ -817,11 +1096,17 @@ function renderCart(){
     </div>`).join('');
   document.getElementById('sum-subtotal').textContent=subtotal().toFixed(2)+' €';
   const rRow=document.getElementById('sum-remise-row');
-  if(remise()>0){
+  if(remisePanier()>0){
     rRow.style.display='flex';
     document.getElementById('sum-remise-label').textContent='Remise ('+promoActif.code+')';
-    document.getElementById('sum-remise').textContent='− '+remise().toFixed(2)+' €';
+    document.getElementById('sum-remise').textContent='− '+remisePanier().toFixed(2)+' €';
   } else { rRow.style.display='none'; }
+  const bRow=document.getElementById('sum-bonus-row');
+  if(remiseBonus()>0){
+    bRow.style.display='flex';
+    document.getElementById('sum-bonus-label').textContent='Bonus ('+libelleBonus()+')';
+    document.getElementById('sum-bonus').textContent='− '+remiseBonus().toFixed(2)+' €';
+  } else { bRow.style.display='none'; }
   document.getElementById('sum-shipping').textContent=shipping()===0?'OFFERTE ✅':shipping().toFixed(2)+' €';
   document.getElementById('sum-total').textContent=total().toFixed(2)+' €';
   sum.style.display='block';
@@ -835,7 +1120,40 @@ function goScreen(name){
   document.getElementById('screen-'+name).classList.add('active');
   window.scrollTo(0,0);
   if(name==='cart')renderCart();
+  if(name==='tarifs')renderTarifs();
+  if(name==='delivery')onPaysChange();
   updateBottomBar();
+}
+
+// Grille tarifaire complète (groupée par catégorie, stock live)
+function renderTarifs(){
+  const box=document.getElementById('tarifs-list');
+  let html='';
+  CATEGORIES.forEach(cat=>{
+    const codes=Object.keys(PRODUCTS).filter(k=>PRODUCTS[k].cat===cat);
+    if(!codes.length) return;
+    html+=`<div class="tarif-cat">${cat}</div>`;
+    codes.forEach(code=>{
+      const p=PRODUCTS[code];
+      const rupt=isRupture(code);
+      html+=`<div class="tarif-row${rupt?' rupture':''}">
+        <span class="tarif-name">${p.nom}${rupt?'<span class="rupt-tag">RUPTURE</span>':''}</span>
+        <span class="tarif-p">${p.p1}€</span>
+        <span class="tarif-p">${p.p5?p.p5+'€':'—'}</span>
+        <span class="tarif-p big">${p.p10?p.p10+'€':'—'}</span>
+      </div>`;
+    });
+  });
+  // Accessoires (prix unitaire uniquement)
+  html+=`<div class="tarif-cat">💧 Accessoires</div>`;
+  ACCESSORIES.forEach(a=>{
+    const det=ACC_DETAIL[a.code];
+    html+=`<div class="tarif-row">
+      <span class="tarif-name">${a.nom}${det?`<div class="acc-detail">${det}</div>`:''}</span>
+      <span class="tarif-p big" style="width:auto;">${a.price.toFixed(2)}€</span>
+    </div>`;
+  });
+  box.innerHTML=html;
 }
 
 function updateBottomBar(){
@@ -843,7 +1161,7 @@ function updateBottomBar(){
   const inner=document.getElementById('bb-inner');
   const active=document.querySelector('.screen.active').id;
   // Home & SAV: hide bar
-  if(active==='screen-home'||active==='screen-sav'||active==='screen-rib'){bar.style.display='none';return;}
+  if(active==='screen-home'||active==='screen-sav'||active==='screen-rib'||active==='screen-tarifs'){bar.style.display='none';return;}
   bar.style.display='block';
 
   if(active==='screen-catalogue'||active==='screen-cart'){
@@ -865,11 +1183,17 @@ function updateBottomBar(){
   else if(active==='screen-payment'){
     document.getElementById('pay-subtotal').textContent=subtotal().toFixed(2)+' €';
     const payR=document.getElementById('pay-remise-row');
-    if(remise()>0){
+    if(remisePanier()>0){
       payR.style.display='flex';
       document.getElementById('pay-remise-label').textContent='Remise ('+promoActif.code+')';
-      document.getElementById('pay-remise').textContent='− '+remise().toFixed(2)+' €';
+      document.getElementById('pay-remise').textContent='− '+remisePanier().toFixed(2)+' €';
     } else { payR.style.display='none'; }
+    const payB=document.getElementById('pay-bonus-row');
+    if(remiseBonus()>0){
+      payB.style.display='flex';
+      document.getElementById('pay-bonus-label').textContent='Bonus ('+libelleBonus()+')';
+      document.getElementById('pay-bonus').textContent='− '+remiseBonus().toFixed(2)+' €';
+    } else { payB.style.display='none'; }
     document.getElementById('pay-shipping').textContent=shipping()===0?'OFFERTE ✅':shipping().toFixed(2)+' €';
     document.getElementById('pay-total').textContent=total().toFixed(2)+' €';
     inner.innerHTML=`<button class="cta-btn full" onclick="confirmOrder()">Valider la commande →</button>`;
@@ -879,7 +1203,44 @@ function updateBottomBar(){
 // ═══════════════════════════════════════════
 //  DELIVERY / PAYMENT
 // ═══════════════════════════════════════════
-function selectDelivery(el){document.querySelectorAll('#screen-delivery .opt-card').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
+
+// Change de pays → recalcule les frais de port
+function onPaysChange(){
+  paysLivraison = document.getElementById('in-pays').value;
+  const modes = MODES_PAYS[paysLivraison] || ["relais"];
+  // Si le mode actuellement sélectionné n'existe plus pour ce pays, bascule sur le premier dispo
+  if(!modes.includes(modeLivraison)) modeLivraison = modes[0];
+
+  const box=document.getElementById('modes-livraison');
+  const labelMode = {
+    relais:{icon:'📦',nom:'Point Relais / Locker',desc:'Retrait en point relais · Envoi discret & suivi',prix:SHIPPING_RELAIS},
+    domicile:{icon:'🏠',nom:'Livraison à domicile',desc:'Remise directe chez toi · Envoi discret & suivi',prix:SHIPPING_DOMICILE},
+  };
+  box.innerHTML = modes.map(m=>{
+    const info=labelMode[m];
+    const sel = m===modeLivraison ? ' selected' : '';
+    return `<div class="opt-card${sel}" onclick="selectMode('${m}',this)">
+      <div class="opt-radio"></div>
+      <span class="opt-icon">${info.icon}</span>
+      <div class="opt-info">
+        <div class="opt-name">${info.nom} — ${info.prix.toFixed(2)} €</div>
+        <div class="opt-desc">${info.desc}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const info=document.getElementById('info-port');
+  if(info){
+    info.innerHTML = `Livraison vers <strong>${paysLivraison}</strong> — offerte dès ${FREE_SHIP} € d'achat.`;
+  }
+  updateBottomBar();
+}
+function selectMode(m,el){
+  modeLivraison=m;
+  document.querySelectorAll('#modes-livraison .opt-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  updateBottomBar();
+}
 function selectPayment(el,method){
   if(method!=='Virement')return;
   document.querySelectorAll('#screen-payment .opt-card').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');payment=method;
@@ -889,37 +1250,45 @@ function validateDelivery(){
   const email=document.getElementById('in-email').value.trim();
   const phone=document.getElementById('in-phone').value.trim();
   const relay=document.getElementById('in-relay').value.trim();
+  const pays=document.getElementById('in-pays').value;
+  const parrainPseudo=document.getElementById('in-parrain').value.trim();
+  const parrainCode=document.getElementById('in-code-parrain').value.trim().toUpperCase();
+  const merciCode=document.getElementById('in-code-merci').value.trim().toUpperCase();
   if(!name||!email||!phone||!relay){
     if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred('error');
     alert('Merci de remplir tous les champs de livraison.');return;
   }
-  window._order={name,email,phone,relay};
+  window._order={name,email,phone,relay,pays,parrainPseudo,parrainCode,merciCode,merciQty};
+  // Code filleul (PARRAINAGE10) — cumulable avec le code panier
+  if(parrainCode && PROMOS_BONUS[parrainCode]){
+    bonusActif = Object.assign({code:parrainCode}, PROMOS_BONUS[parrainCode]);
+  }
+  // Code récompense parrain personnalisé — vérifié dans le Sheet CODES PARRAIN
+  merciActif = false; merciCodeActif = "";
+  if(merciCode){
+    const entry = CODES_PARRAIN[merciCode];
+    if(!entry || entry.credits <= 0){
+      if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred('error');
+      alert("Code récompense invalide ou sans crédit disponible.\n\nCe code est personnel et t'est communiqué par RAZOLAB une fois qu'un filleul a commandé. Laisse le champ vide si tu n'en as pas.");
+      return;
+    }
+    merciActif = true;
+    merciCodeActif = merciCode;
+    merciMax = entry.credits;
+    if(merciQty > merciMax){
+      merciQty = merciMax;
+      document.getElementById('merci-qty-num').textContent = merciQty;
+    }
+  }
+  window._order.merciCode = merciCodeActif;
+  window._order.merciQty = merciQty;
   goScreen('payment');
 }
 
 // ═══════════════════════════════════════════
 //  CONFIRM → generate ref, show RIB, send to bot
 // ═══════════════════════════════════════════
-async function confirmOrder(){
-  // Code parrain : on retire le crédit dans le Sheet avant de valider
-  if(promoActif && promoActif.parrain && !promoActif.consomme){
-    // nombre de crédits réellement utilisés (10 € chacun, jamais plus que le sous-total)
-    const nbCredits = Math.max(1, Math.ceil(remise()/PARRAIN_REMISE));
-    let ok = true;
-    for(let k=0;k<nbCredits;k++){
-      ok = await consommerCredit(promoActif.code);
-      if(!ok) break;
-    }
-    if(!ok){
-      alert('Ce code parrain n\'a plus de crédit disponible.');
-      promoActif = null;
-      document.getElementById('promo-msg').textContent='❌ Crédit parrain épuisé';
-      document.getElementById('promo-msg').className='promo-msg ko';
-      goScreen('cart');
-      return;
-    }
-    promoActif.consomme = true;
-  }
+function confirmOrder(){
   const ref='RZL-'+Date.now().toString().slice(-6);
   const o=window._order;
 
@@ -931,20 +1300,29 @@ async function confirmOrder(){
   document.getElementById('rib-ref').textContent=ref;
   document.getElementById('ref-warning-code').textContent=ref;
 
-  // payload structuré (pour bot Option 1)
+  // payload structuré (pour bot Option 1 + enregistrement auto Sheet)
   const payload={
-    ref, client:o, delivery:'Mondial Relais', payment:'Virement',
+    ref, client:o, delivery:(modeLivraison==='domicile'?'Domicile':'Point Relais / Locker'), pays:paysLivraison, payment:'Virement',
     items:cart, subtotal:subtotal(),
     promo: promoActif ? {code:promoActif.code, label:promoActif.label} : null,
+    bonus: bonusActif ? {code:bonusActif.code, label:bonusActif.label} : null,
+    merci: merciActif ? {code:merciCodeActif, qty:merciQty} : null,
+    remisePanier: remisePanier(),
+    remiseBonus: remiseBonus(),
     remise: remise(),
     shipping:shipping(), total:total(),
+    parrainPseudo: o.parrainPseudo || '',
   };
+
+  // 📋 Enregistrement automatique dans le Google Sheet — dès la confirmation,
+  // que le client envoie ensuite son récap ou non
+  enregistrerCommande(payload);
 
   // ─── Récap texte lisible (pour Option 2 : message pré-rempli) ───
   let lignes='';
   cart.forEach(it=>{
     lignes += it.type==='prod'
-      ? `▸ ${it.nom} (${it.pack}) — ${it.price.toFixed(2)}€\n`
+      ? `▸ ${it.nom} (${it.pack})${it.qty>1?' × '+it.qty:''} — ${it.price.toFixed(2)}€\n`
       : `▸ ${it.nom} ×${it.qty} — ${it.price.toFixed(2)}€\n`;
   });
   const recapText =
@@ -960,9 +1338,10 @@ Nom : ${o.name}
 Email : ${o.email}
 Tél : ${o.phone}
 Adresse : ${o.relay}
-
-🚚 Livraison : Mondial Relais
-💳 Paiement : Virement${promoActif ? '\n🎟️ Code promo : '+promoActif.code+' ('+promoActif.label+') → −'+remise().toFixed(2)+'€' : ''}
+Pays : ${o.pays || 'France'}
+${o.parrainPseudo ? '🎁 Parrainé par : '+o.parrainPseudo+'\n' : ''}
+🚚 Livraison : ${modeLivraison==='domicile'?'Domicile':'Point Relais / Locker'} (${paysLivraison})
+💳 Paiement : Virement${promoActif ? '\n🎟️ Code promo : '+promoActif.code+' ('+promoActif.label+') → −'+remisePanier().toFixed(2)+'€' : ''}${bonusActif ? '\n🎁 Code parrainage : '+bonusActif.code+' → −'+((bonusActif.type==='pct'?subtotal()*bonusActif.val/100:bonusActif.val)).toFixed(2)+'€' : ''}${merciActif ? '\n⭐ Récompense parrain : '+merciCodeActif+' ×'+merciQty+' filleul(s) → −'+(MERCI_VAL*merciQty).toFixed(2)+'€' : ''}
 💰 TOTAL : ${total().toFixed(2)}€
 
 ━━━━━━━━━━━━━━━
@@ -971,15 +1350,27 @@ Adresse : ${o.relay}
   window._recapText = recapText;
   window._orderPayload = payload;
 
-  // Envoi auto au bot si dispo (Option 1)
-  if(tg){
+  // Détecte si on est dans Telegram ou dans un navigateur (Insta, etc.)
+  const dansTelegram = !!(tg && tg.initData !== undefined && tg.initData !== "");
+  if(dansTelegram){
+    document.getElementById('btn-send-tg').style.display='block';
+    document.getElementById('info-send-tg').style.display='block';
+    document.getElementById('btn-copy').style.display='none';
+    document.getElementById('info-copy').style.display='none';
+    // Envoi auto au bot si dispo (Option 1)
     try{ tg.sendData(JSON.stringify(payload)); }catch(e){ console.log(e); }
     if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');
+  } else {
+    // Hors Telegram → bouton Copier
+    document.getElementById('btn-send-tg').style.display='none';
+    document.getElementById('info-send-tg').style.display='none';
+    document.getElementById('btn-copy').style.display='block';
+    document.getElementById('info-copy').style.display='block';
   }
   goScreen('rib');
 }
 
-// Option 2 : ouvre la DM admin avec le récap pré-rempli
+// Option 2 : ouvre la DM admin avec le récap pré-rempli (Telegram)
 function sendOrderToAdmin(){
   const txt = encodeURIComponent(window._recapText || '');
   const url = 'https://t.me/'+ADMIN_USERNAME+'?text='+txt;
@@ -987,9 +1378,32 @@ function sendOrderToAdmin(){
   else{ window.open(url,'_blank'); }
 }
 
+// Hors Telegram : copie le récap pour coller en DM Insta
+function copierCommande(){
+  const txt = window._recapText || '';
+  const btn = document.getElementById('btn-copy');
+  function feedbackOK(){
+    btn.textContent = '✅ Commande copiée !';
+    setTimeout(()=>{ btn.textContent='📋 Copier ma commande'; }, 2500);
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(feedbackOK).catch(()=>fallbackCopy(txt,feedbackOK));
+  } else {
+    fallbackCopy(txt,feedbackOK);
+  }
+}
+function fallbackCopy(txt,cb){
+  const ta=document.createElement('textarea');
+  ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try{ document.execCommand('copy'); cb&&cb(); }catch(e){ alert('Copie impossible, sélectionne le texte manuellement.'); }
+  document.body.removeChild(ta);
+}
+
 function contactSAV(){
-  if(tg){ tg.openTelegramLink('https://t.me/'+ADMIN_USERNAME); }
-  else{ window.open('https://t.me/'+ADMIN_USERNAME,'_blank'); }
+  const dansTelegram = !!(tg && tg.initData !== undefined && tg.initData !== "");
+  if(dansTelegram){ tg.openTelegramLink('https://t.me/'+ADMIN_USERNAME); }
+  else{ window.open('https://instagram.com/'+INSTA_USERNAME,'_blank'); }
 }
 
 // ═══════════════════════════════════════════
@@ -1000,6 +1414,7 @@ updateBottomBar();
 loadStock().then(()=>{
   console.log("Stock prêt.");
 });
+loadCodesParrain();
 </script>
 </body>
 </html>
