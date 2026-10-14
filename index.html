@@ -717,6 +717,16 @@ const ACCESSORIES = [
 ];
 
 // Composition détaillée des kits (affichée sous le nom)
+// Composants de chaque kit : si un composant est à 0 en stock, le kit est indisponible aussi
+const ACC_DEPS = {
+  "KIT3":["BA3","SERI1","TAMP"],
+  "KIT10":["BA10","SERI1","TAMP"],
+  "SPRAY10":["SERI3"],
+};
+function isRuptureAcc(code){
+  if(isRupture(code)) return true;
+  return (ACC_DEPS[code]||[]).some(c=>isRupture(c));
+}
 const ACC_DETAIL = {
   "KIT3":"eau bacté 3ml + 10 seringues + 10 tampons",
   "KIT10":"eau bacté 10ml + 10 seringues + 20 tampons",
@@ -894,16 +904,34 @@ function changeMerciQty(delta){
   document.getElementById('merci-qty-num').textContent=merciQty;
 }
 
+// Marque les accessoires en rupture (stock = 0 dans le Sheet) : grisés + tag + non sélectionnables
+function refreshAccStock(){
+  ACCESSORIES.forEach(a=>{
+    const chk=document.getElementById('chk-'+a.code);
+    if(!chk) return;
+    const row=chk.closest('.acc-item');
+    const rupt=isRuptureAcc(a.code);
+    row.style.opacity=rupt?'.4':'';
+    row.style.pointerEvents=rupt?'none':'';
+    const nom=row.querySelector('.acc-name');
+    const tag=nom.querySelector('.rupt-tag');
+    if(rupt && !tag){ nom.insertAdjacentHTML('beforeend','<span class="rupt-tag" style="font-size:10px;color:#ff5566;font-weight:700;margin-left:6px;">⛔ RUPTURE</span>'); }
+    if(!rupt && tag){ tag.remove(); }
+    if(rupt && currentSel.acc[a.code]>0){ currentSel.acc[a.code]=0; refreshAcc(a.code); }
+  });
+}
 function toggleAcc(){
   document.getElementById('acc-toggle').classList.toggle('open');
   document.getElementById('acc-list').classList.toggle('open');
 }
 function toggleAccItem(code){
+  if(isRuptureAcc(code)){ currentSel.acc[code]=0; refreshAcc(code); return; }
   const cur=currentSel.acc[code];
   currentSel.acc[code]= cur>0?0:1;
   refreshAcc(code);
 }
 function accQty(code,delta){
+  if(isRuptureAcc(code)){ currentSel.acc[code]=0; refreshAcc(code); return; }
   currentSel.acc[code]=Math.max(0,currentSel.acc[code]+delta);
   refreshAcc(code);
 }
@@ -1148,8 +1176,9 @@ function renderTarifs(){
   html+=`<div class="tarif-cat">💧 Accessoires</div>`;
   ACCESSORIES.forEach(a=>{
     const det=ACC_DETAIL[a.code];
-    html+=`<div class="tarif-row">
-      <span class="tarif-name">${a.nom}${det?`<div class="acc-detail">${det}</div>`:''}</span>
+    const rupA=isRuptureAcc(a.code);
+    html+=`<div class="tarif-row${rupA?' rupture':''}">
+      <span class="tarif-name">${a.nom}${rupA?'<span class="rupt-tag">RUPTURE</span>':''}${det?`<div class="acc-detail">${det}</div>`:''}</span>
       <span class="tarif-p big" style="width:auto;">${a.price.toFixed(2)}€</span>
     </div>`;
   });
@@ -1412,6 +1441,7 @@ updateBottomBar();
 
 // Charge le stock depuis le Google Sheet au démarrage
 loadStock().then(()=>{
+  refreshAccStock();
   console.log("Stock prêt.");
 });
 loadCodesParrain();
